@@ -118,7 +118,6 @@ def show(b: Board) -> None:
     def nice_die(n: int) -> str:
         return str(n)
         return "⚀⚁⚂⚃⚄⚅"[n - 1]  # maco però massa petit
-
     red_checker = "🔴"
     grn_checker = "🟢"
     if b.current() == WHITE:
@@ -128,6 +127,10 @@ def show(b: Board) -> None:
     else:
         current = ""
 
+    # --------------------
+    if b.current() == BLACK:
+        red_checker, grn_checker = grn_checker, red_checker
+    # --------------------
     h = max(5, max([abs(c) for c in b.cells()]))
     for i in range(h):
         for j in range(24):
