@@ -1,3 +1,10 @@
+"""
+To do list:
+Porque "show" va regular
+Si no se pueden hacer max movimientos, quedarse con el dado mas grande CHECK
+Si se quiere hacer off pero los dados no son exactos, se debe usar la posicion mas grande CHECK
+"""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
@@ -77,14 +84,15 @@ class Board:
         self._barW = barW
         self._barB = barB
         self._turn = turn
-        self._offW = 0
-        self._offB = 0
 
         # Generació de les caselles
         if cells:
             self._cells = cells
         else:
             self._cells = [2, 0, 0, 0, 0, -5, 0, -3, 0, 0, 0, 5, -5, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, -2] # Tauler amb les posicions inicials
+        
+        self._offW = 15 - sum([cell for cell in self._cells if cell > 0]) - self._barW # Totes les blanques que NO hi són al tauler
+        self._offB = 15 + sum([cell for cell in self._cells if cell < 0]) - self._barB # Totes les fixtes negres que NO ho son al tauler
         
     def copy(self) -> Board:
         """Retorna una copia del tauler actual."""
@@ -130,36 +138,43 @@ class Board:
         """Retorna el jugador que ha guanyat la partida (si encara no ha acabat, retorna None)"""
 
         if self.off(WHITE) == 15:
-            return WHITE
+            return WHITE if self.current() == WHITE else BLACK  
         elif self.off(BLACK) == 15:
-            return BLACK    
+            return BLACK if self.current() == WHITE else WHITE
         else:
             return None
 
     def over(self) -> bool:
         """Retorna "True" si la partida ha acabat, retorna "False" alternament."""
-        return not (self.winner() == None)
+        return not self.winner() is None
 
     def valid_moves(self) -> list[Move]:
         """Retorna una llista amb tots els possibles moviments válids que es poden fer"""
+
         # Verificar que la jugada té dobles
         if self.dice().is_double():
             list_dice = [self.dice().die1]*2 + [self.dice().die2]*2
         else:
             list_dice = [self.dice().die1, self.dice().die2]
-        
+
         # Generar tots els possibles moviments que es poden fer
         possible_moves = self._generate_moves(self.copy(), list_dice, [])
 
         # Quedar-se només amb aquells que tinguin el màxim nombre de moviments
         if possible_moves:
             len_moves = max(len(move.jumps) for move in possible_moves)
-            valid_moves = [move for move in possible_moves if len(move.jumps) == len_moves]
+
+            # Si el moviment només té un salt, cal utilitzar el dau més gran
+            if len_moves == 1:
+                max_move = max((move.jumps[0].pips for move in possible_moves))
+                valid_moves = [move for move in possible_moves if move.jumps[0].pips == max_move]
+            else:
+                valid_moves = [move for move in possible_moves if len(move.jumps) == len_moves]
         else:
             valid_moves = []
 
         return valid_moves
-    
+      
     def is_valid_move(self, move: Move) -> bool:
         """..."""
         return move in self.valid_moves()
@@ -169,21 +184,25 @@ class Board:
         Retorna una copia del tauler després d'aplicar-li un moviment.
         Prec: El moviment ha de ser vàlid.
         """
-
         next_board = self.copy()
         for jump in move.jumps:
             jump_position = jump.point + jump.pips
-            next_board._cells[jump.point] -= 1
-            # Si el moviment es treu desde la barra
+
+            # Treure la fitxa de l'origen
             if jump.point == -1:
                 next_board._barW -= 1
+            else:
+                next_board._cells[jump.point] -= 1
+
+            # Si el moviment es un "bear off"
+            if jump_position > 23:
+                next_board._offW += 1
+
             # Si el moviment és una captura
-            if next_board.cell(jump_position) == -1:
+            elif next_board.cell(jump_position) == -1:
                 next_board._cells[jump_position] = 1
                 next_board._barB += 1
-            # Si el moviment es un "bear off"
-            elif jump_position > 23:
-                next_board._offW += 1
+
             # Si és un moviment normal
             else:
                 next_board._cells[jump_position] += 1
@@ -209,6 +228,7 @@ class Board:
         
         else:
             # Per cada dau que encara ens quedi, generem tots els salts válids que podem fer
+            valid_jumps: list[Jump] | None = []
             for die in list_dice:
                 valid_jumps = self._generate_jumps(current_board, die)
 
@@ -216,14 +236,17 @@ class Board:
                 if valid_jumps:
                     for jump in valid_jumps:
                         # Modificar el tauler i el moviment per simular el salt.
-                        simulated_board = current_board.copy().play(Move(jumps=[jump]))
+                        new_board = current_board.copy().play(Move(jumps=[jump]))
                         new_current_move = Move(jumps=current_move.jumps + [jump])
 
                         new_list_dice = list_dice[:]
                         new_list_dice.remove(die)
 
                         # Recursió per generar més moviments a partir del salt
-                        self._generate_moves(simulated_board, new_list_dice, list_moves, new_current_move)
+                        self._generate_moves(new_board, new_list_dice, list_moves, new_current_move)
+            
+            if not valid_jumps:
+                list_moves.append(current_move) 
 
             return list_moves
         
@@ -233,63 +256,61 @@ class Board:
 
         list_jumps: list[Jump] = []
 
-        '''If neither of the points is open, the player loses his turn. If a player is able to enter some 
-        but not all of his checkers, he must enter as many as he can and then forfeit the remainder of his turn.'''
-        if board.bar(WHITE) > 0:
-            next_position = die
+        # Per fitxes a la barra
+        if board.bar(WHITE) > 0:    
+            next_position = die - 1
             next_position_points = board.cell(next_position)
+            
             # Si a la següent posició tenim ALGUNA fitxa blanca, EXACTAMENT UNA negra o ESTA BUIDA, el moviment és legal
             if next_position_points >= -1:
                 list_jumps.append(Jump(-1, die))
                 return list_jumps
-            else:
-                return None
+            return None
 
-        '''
-        1) A checker may be moved only to an open point, one that is not occupied by two or more opposing checkers.
-        2) The numbers on the two dice constitute separate moves.
-        3) A player who rolls doubles plays the numbers shown on the dice twice.
-        4) A player must use both numbers of a roll if this is legally possible
-        '''
+        # Per fitxes al tauler
         for position, points in enumerate(board.cells()): # position: nombre casella, points: fitxes a la casella
             # Si la casella pertany al jugador blanc
             if points >= 1: 
                 next_position = position + die
                 # Si el moviment és un "bear off" válid
                 if next_position > 23:
-                    if self._can_bear_off(board):
-                        list_jumps.append(Jump(points, die))
-                
+                    if self._can_bear_off(board, Jump(position, die)):
+                        list_jumps.append(Jump(position, die))
+
                 else:
                     next_position_points = board.cell(next_position)
                     # Si a la següent posició tenim ALGUNA fitxa blanca, EXACTAMENT UNA negra o ESTA BUIDA, el moviment és legal
                     if next_position_points >= -1:
-                        list_jumps.append(Jump(position, die))
-                
+                        list_jumps.append(Jump(position, die))                
         return list_jumps
     
-    def _can_bear_off(self, board: Board) -> bool:
+    def _can_bear_off(self, board: Board, jump: Jump) -> bool:
         '''Donat un tauler, retorna "True" si totes les fitxes blanques es troben al home 
         per fer "bear off". Retorna "False" alternament.'''
+
         # Si troba en alguna posició < 18 una fitxa blanca, no pot fer "bear off".
         for position, points in enumerate(board.cells()): # position: nombre casella, points: fitxes a la casella
             if points >= 1 and position < 18:
                 return False
             if position >= 18:
-                break
-        return True
+                # Assegurar-se de que el salt, o bé és exacte pel "bear off", o bé es treu la fitxa de més llunyana
+                if jump.point + jump.pips == 24:
+                    return True
+                if points >= 1:
+                    if jump.point == position:
+                        return True
+                    break
 
+        return False
+    
 # Proves per saber si funciona
 if __name__ == "__main__":
     import yogi, show
     seed = 123454
     cup = DiceCup(seed)
-    board = Board(cup.roll())
+    board = Board(Dice(5, 5))
     while True:
         show.show(board)
 
-        # for i in board.valid_moves():
-        #    print(i)
-
-        board = board.play(Move(jumps=[Jump(yogi.read(int), yogi.read(int)), Jump(yogi.read(int), yogi.read(int))]))
+        board = board.play(Move(jumps=[Jump(yogi.read(int), yogi.read(int)),Jump(yogi.read(int), yogi.read(int)), Jump(yogi.read(int), yogi.read(int)), Jump(yogi.read(int), yogi.read(int))]))
         board = board.next(cup.roll())
