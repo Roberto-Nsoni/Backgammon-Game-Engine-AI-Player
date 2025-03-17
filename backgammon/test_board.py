@@ -1,18 +1,25 @@
-from board import Board, WHITE, DiceCup, Move, Jump, Dice # type: ignore #############
+from board import Board, WHITE, DiceCup, Move, Jump, Dice # type: ignore ###################
 from show import show
 
 # these are just some sample tests
 
-def test_validate_moves():
-    """Check if board.valid_moves works."""
-    seed = 123456
-    cup = DiceCup(seed) # type: ignore ##################3
+def test_validate_moves(board: Board):
+    """Check if board.valid_moves works"""
 
-    board = Board(Dice(5, 5))
     show(board)
-    print("Valid moves: ")
-    for i in board.valid_moves():
-        print(i)
+    print("Valid moves for", board.dice())
+
+    sorted_moves = sorted(
+    board.valid_moves(),
+    key=lambda move: [(jump.point, jump.pips) for jump in move.jumps]  # Ordena por todos los jumps
+)
+    
+    for i, move in enumerate(sorted_moves):
+        print(f'{i} -', end=" ")
+        for jump in move.jumps:
+            print(jump.point + 1, jump.pips, end=" ") # Suma 1 para tener posiciones 1-24
+        print()
+    print()
 
 def test_dice_is_valid():
     """Check if dice.is_valid works."""
@@ -35,7 +42,7 @@ def test_dice_is_double():
     assert not Dice(1, 2).is_double()
     assert not Dice(3, 4).is_double()
 
-def show_move(board: Board, move: Move):
+def show_move(board: Board, move: Move) -> None:
     if move not in board.valid_moves():
         print("Jugada no vàlida")
         return
@@ -44,6 +51,23 @@ def show_move(board: Board, move: Move):
     show(simulated_board)
 
 if __name__ == "__main__":
+    test_validate_moves(Board(Dice(2, 1)))
+    test_validate_moves(Board(Dice(5, 6)))
+    test_validate_moves(Board(Dice(6, 3)))
+    test_validate_moves(Board(Dice(4, 4)))
+
+    # Bear off travieso
+    test_validate_moves(Board(Dice(4,5), 27, [0, 0, -3, 0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 5, 0, -2], 0, 0)) 
+
+    # Sin movimientos posibles por bobo
+    test_validate_moves(Board(Dice(3,3), cells=[-1, 3, -1, -1, -4, 0, 3, 0, 0, -5, 0, 5, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 4], barB = 1))
+
+    # Sin movimientos posibles porque tiene que sacar de la barra, pero está bloqueada
+    test_validate_moves(Board(Dice(6,3), 1, [-2, 0, -2, -2, 0, -5, -2, 0, 0, 0, 0, 0, 0, 0, -1, -1, 4, 0, 9, 0, 0, 0, 1, 0], 1, 0)) 
+
+    # Bear off
+    test_validate_moves(Board(Dice(5, 4), 58, [-5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 0, 0))
+
     # "Treure de barra" amb captura
     board = Board(Dice(5, 2), cells=[-1, -1, 0, -4, -1, -5, 0, 0, 0, 0, 0, 3, 0, 0, -2, 1, 0, 1, 5, 1, 0, 0, 4, 0], barB = 1)
     board = board.flip()

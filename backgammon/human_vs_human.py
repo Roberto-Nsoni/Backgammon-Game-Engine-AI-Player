@@ -57,7 +57,9 @@ def main() -> None:
             move = read_move(board)
             board = board.play(move)
             board = board.next(cup.roll())
+            board.flip()
             show(board)
+            board.flip()
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")
 

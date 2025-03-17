@@ -166,8 +166,8 @@ class Board:
 
             # Si el moviment només té un salt, cal utilitzar el dau més gran
             if len_moves == 1:
-                max_move = max((move.jumps[0].pips for move in possible_moves))
-                valid_moves = [move for move in possible_moves if move.jumps[0].pips == max_move]
+                max_move = max((move.jumps[0].pips for move in possible_moves if move.jumps))
+                valid_moves = [move for move in possible_moves if (move.jumps and move.jumps[0].pips == max_move)]
             else:
                 valid_moves = [move for move in possible_moves if len(move.jumps) == len_moves]
         else:
@@ -244,6 +244,10 @@ class Board:
 
                         # Recursió per generar més moviments a partir del salt
                         self._generate_moves(new_board, new_list_dice, list_moves, new_current_move)
+
+                # Si resulta que els daus són dobles, no cal provar per tots els daus restants, ja que són iguals
+                if current_board.dice().is_double():
+                    return list_moves
             
             if not valid_jumps:
                 list_moves.append(current_move) 
@@ -288,19 +292,22 @@ class Board:
         '''Donat un tauler, retorna "True" si totes les fitxes blanques es troben al home 
         per fer "bear off". Retorna "False" alternament.'''
 
-        # Si troba en alguna posició < 18 una fitxa blanca, no pot fer "bear off".
+        # Assegurar-se de que no hi ha cap fitxa fora del home board, sino pot fer "bear off".
         for position, points in enumerate(board.cells()): # position: nombre casella, points: fitxes a la casella
             if points >= 1 and position < 18:
                 return False
             if position >= 18:
-                # Assegurar-se de que el salt, o bé és exacte pel "bear off", o bé es treu la fitxa de més llunyana
-                if jump.point + jump.pips == 24:
-                    return True
-                if points >= 1:
-                    if jump.point == position:
-                        return True
-                    break
+                break
+    
+        # Si el salt es "exacte"
+        if jump.point + jump.pips == 24:
+            return True
 
+        # Si el salt es passa
+        furthest_point = min((pos for pos in range(18, 24) if (board.cell(pos) >= 1 and pos + jump.pips > 24)))
+        if jump.point + jump.pips > 24 and jump.point == furthest_point:
+            return True
+        
         return False
     
 # Proves per saber si funciona
