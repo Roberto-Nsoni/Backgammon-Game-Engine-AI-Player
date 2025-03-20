@@ -3,7 +3,7 @@ from bot import bot
 from show import show
 
 def main():
-    seed = 123456
+    seed = 12345
     cup = DiceCup(seed)
     board = Board(cup.roll())
     show(board)

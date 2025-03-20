@@ -56,6 +56,9 @@ if __name__ == "__main__":
     test_validate_moves(Board(Dice(6, 3)))
     test_validate_moves(Board(Dice(4, 4)))
 
+    # Bear off normal
+    test_validate_moves(Board(Dice(5, 4), 58, [-5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 0, 0))
+    
     # Bear off travieso
     test_validate_moves(Board(Dice(4,5), 27, [0, 0, -3, 0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 5, 0, -2], 0, 0)) 
 
@@ -64,9 +67,6 @@ if __name__ == "__main__":
 
     # Sin movimientos posibles porque tiene que sacar de la barra, pero está bloqueada
     test_validate_moves(Board(Dice(6,3), 1, [-2, 0, -2, -2, 0, -5, -2, 0, 0, 0, 0, 0, 0, 0, -1, -1, 4, 0, 9, 0, 0, 0, 1, 0], 1, 0)) 
-
-    # Bear off
-    test_validate_moves(Board(Dice(5, 4), 58, [-5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3], 0, 0))
 
     # "Treure de barra" amb captura
     board = Board(Dice(5, 2), cells=[-1, -1, 0, -4, -1, -5, 0, 0, 0, 0, 0, 3, 0, 0, -2, 1, 0, 1, 5, 1, 0, 0, 4, 0], barB = 1)

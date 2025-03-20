@@ -1,6 +1,6 @@
-from board import Board, WHITE, DiceCup, Move, Jump
-from show import show
 import sys
+from board import Board, WHITE, DiceCup, Move, Jump, BLACK
+from show import show
 from bot import bot
 
 def read_move(current_board: Board) -> Move:
@@ -9,23 +9,37 @@ def read_move(current_board: Board) -> Move:
     desprésde validar si aquell moviment era legal.
     Exemple: "0 2 0 1" la converteix Move(jumps=[Jump(point=0, pips=2), Jump(point=0, pips=1)])
     """
+    blank_move = Move(jumps=[])
+
+    print("Escriu, per ordre, tots els moviments que vulguis realitzar (point, pip): ")
 
     while True:
         line = sys.stdin.readline().split()
+
+        # Si l'usuari necessita ajuda per saber els movimients que pot fer
         if line == ["?"]:
+            valid_moves = current_board.valid_moves()
+            if valid_moves == blank_move:
+                print("You dont have possible moves, please skip your turn!")
+                continue
             print("Possible move list:")
-            for index, move in enumerate(current_board.valid_moves()):
+            for index, move in enumerate(valid_moves):
                 print(f"{index + 1}: ", end="")
                 for jump in move.jumps:
                     print(f"Point: {jump.point + 1} Dice: {jump.pips}\t", end="")
                 print() 
             continue
         
+        # Si l'usuari no té moviments per fer
+        if line == ["\n"]:
+            if current_board.valid_moves() == [blank_move]:
+                return blank_move
+            
         # Error la entrada no té el el par complet (point, pip)
         if len(line) % 2 != 0:
             print("La entrada no té el parell (point, pip), torna a probar!")
             continue
-
+        
         move = Move(jumps=[])
         for i in range(0, len(line), 2):
             try:
@@ -51,20 +65,21 @@ def read_move(current_board: Board) -> Move:
 def main() -> None:
     """..."""
 
-    seed = 65421
+    seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
     while not board.over():
+        show(board)
+        print(seed, board.dice(), board.turn(), board.cells(), board.bar(WHITE), board.bar(BLACK))  
         print("White move?")
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
-        show(board)
         
         if not board.over():
             print(f"JPetit: I've got {board.dice().die1, board.dice().die2} let me think...")
             move = bot(board)
-            if move:
+            if move.jumps:
                 print(f"JPetit: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
             else:
                 print(f"JPetit: I skip my turn, I can't move (JPetit is sad :c)")

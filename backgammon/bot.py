@@ -23,8 +23,10 @@ def evaluate_moves(board: Board) -> list[EvaluatedMove]:
     # Evalua tots els possibles moviments del blanc
     white_moves = [EvaluatedMove(move, evaluate_board(board, move)) for move in board.valid_moves()]
 
+    white_moves.sort(key=lambda x: (x.score), reverse=True)
+    
     # Por cada moviment que pot fer el blanc, suposem que el negre jugarà la millor resposta
-    for white_move in white_moves:
+    for white_move in white_moves[:50]:
         simulated_board = board.copy().play(white_move.move)
 
         # Trobar la millor resposta del negre

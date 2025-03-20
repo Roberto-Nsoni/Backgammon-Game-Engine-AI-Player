@@ -1,6 +1,6 @@
+import sys
 from board import Board, WHITE, DiceCup, Move, Jump
 from show import show
-import sys
 
 def read_move(current_board: Board) -> Move:
     """
@@ -8,13 +8,37 @@ def read_move(current_board: Board) -> Move:
     desprésde validar si aquell moviment era legal.
     Exemple: "0 2 0 1" la converteix Move(jumps=[Jump(point=0, pips=2), Jump(point=0, pips=1)])
     """
+    blank_move = Move(jumps=[])
+
+    print("Escriu, per ordre, tots els moviments que vulguis realitzar (point, pip): ")
 
     while True:
         line = sys.stdin.readline().split()
+
+        # Si l'usuari necessita ajuda per saber els movimients que pot fer
+        if line == ["?"]:
+            valid_moves = current_board.valid_moves()
+            if valid_moves == blank_move:
+                print("You dont have possible moves, please skip your turn!")
+                continue
+            print("Possible move list:")
+            for index, move in enumerate(valid_moves):
+                print(f"{index + 1}: ", end="")
+                for jump in move.jumps:
+                    print(f"Point: {jump.point + 1} Dice: {jump.pips}\t", end="")
+                print() 
+            continue
+        
+        # Si l'usuari no té moviments per fer
+        if line == ["\n"]:
+            if current_board.valid_moves() == [blank_move]:
+                return blank_move
+            
         # Error la entrada no té el el par complet (point, pip)
         if len(line) % 2 != 0:
             print("La entrada no té el parell (point, pip), torna a probar!")
             continue
+        
         move = Move(jumps=[])
         for i in range(0, len(line), 2):
             try:
@@ -31,9 +55,7 @@ def read_move(current_board: Board) -> Move:
                 continue
         
         if not current_board.is_valid_move(move):
-            print("El moviment indicat no es valid, torna a probar!", move)
-            for i in current_board.valid_moves():
-                print(i)
+            print("El moviment indicat no es valid, torna a probar!")
         
         else:
             return move
@@ -51,15 +73,14 @@ def main() -> None:
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
+        board.flip()
         show(board)
         if not board.over():
             print("Black move?")
             move = read_move(board)
             board = board.play(move)
             board = board.next(cup.roll())
-            board.flip()
             show(board)
-            board.flip()
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")
 
