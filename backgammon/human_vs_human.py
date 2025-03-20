@@ -44,10 +44,7 @@ def read_move(current_board: Board) -> Move:
             try:
                 point = int(line[i])
                 pips = int(line[i+1])
-                if current_board.current() == WHITE:
-                    jump = Jump(point - 1, pips) # Index a la terminal: 1-24, index interns: 0-23
-                else:
-                    jump = Jump(23 - point + 1, pips) # Index a la terminal: 24-1, index interns: 0-23
+                jump = Jump(point - 1, pips) # Index a la terminal: 1-24, index interns: 0-23
                     
                 move.jumps.append(jump)
             except ValueError:
@@ -73,14 +70,16 @@ def main() -> None:
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
-        board.flip()
         show(board)
         if not board.over():
             print("Black move?")
+            board = board.flip()
             move = read_move(board)
             board = board.play(move)
             board = board.next(cup.roll())
+            board = board.flip()
             show(board)
+
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")
 

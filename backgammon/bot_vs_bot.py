@@ -24,16 +24,16 @@ def main():
         if not board.over():
             print(seed, board.dice(), board.turn(), board.cells(), board.bar(WHITE), board.bar(BLACK))  
             print(f"JPetitEvil: I've got {board.dice().die1, board.dice().die2} let me think...")
+            board = board.flip()
             move = bot(board)
             if move.jumps:
                 print(f"JPetitEvil: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
             else:
-                print(f"JPetitEvil: I skip my turn, I can't move (JPetitEvil if turnin' more evil :c)")
+                print(f"JPetitEvil: I skip my turn, I can't move (JPetitEvil is turnin' more evil :c)")
             board = board.play(move)
             board = board.next(cup.roll())
-            board.flip()
+            board = board.flip()
             show(board)
-            board.flip()
     
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")

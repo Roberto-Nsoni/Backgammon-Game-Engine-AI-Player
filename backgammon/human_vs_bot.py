@@ -68,16 +68,18 @@ def main() -> None:
     seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
+    show(board)
     while not board.over():
-        show(board)
         print(seed, board.dice(), board.turn(), board.cells(), board.bar(WHITE), board.bar(BLACK))  
         print("White move?")
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
+        show(board)
         
         if not board.over():
             print(f"JPetit: I've got {board.dice().die1, board.dice().die2} let me think...")
+            board = board.flip()
             move = bot(board)
             if move.jumps:
                 print(f"JPetit: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
@@ -85,6 +87,8 @@ def main() -> None:
                 print(f"JPetit: I skip my turn, I can't move (JPetit is sad :c)")
             board = board.play(move)
             board = board.next(cup.roll())
+            board = board.flip()
+            show(board)
 
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")

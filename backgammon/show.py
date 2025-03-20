@@ -126,11 +126,6 @@ def show(b: Board) -> None:
         current = "(" + grn_checker + ")"
     else:
         current = ""
-
-    # --------------------
-    if b.current() == BLACK:
-        red_checker, grn_checker = grn_checker, red_checker
-    # --------------------
     
     h = max(5, max([abs(c) for c in b.cells()]))
     for i in range(h):

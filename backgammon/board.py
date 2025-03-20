@@ -1,10 +1,3 @@
-"""
-To do list:
-Porque "show" va regular
-Si no se pueden hacer max movimientos, quedarse con el dado mas grande CHECK
-Si se quiere hacer off pero los dados no son exactos, se debe usar la posicion mas grande CHECK
-"""
-
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
@@ -184,6 +177,7 @@ class Board:
         Retorna una copia del tauler després d'aplicar-li un moviment.
         Prec: El moviment ha de ser vàlid.
         """
+
         next_board = self.copy()
         for jump in move.jumps:
             jump_position = jump.point + jump.pips
@@ -206,13 +200,13 @@ class Board:
             # Si és un moviment normal
             else:
                 next_board._cells[jump_position] += 1
-            
+
         return next_board
 
         
     def next(self, dice: Dice) -> Board:
         """Retorna una copia del tauler preparat pel següent moviment."""
-        next_board = self.copy().flip()
+        next_board = self.copy()
         next_board._dice = dice
         next_board._turn += 1
         return next_board
