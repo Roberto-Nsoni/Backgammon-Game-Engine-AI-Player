@@ -59,14 +59,14 @@ def evaluate_board(board: Board, move: Move) -> int:
             move_puntuation += cell
 
     # Fer "bear off" (cada fitxa +30)
-    move_puntuation += 25 * next_board.off(WHITE)
+    move_puntuation += 30 * next_board.off(WHITE)
 
-    # Tenir fitxes a la barra (-15 punts per fitxa)
-    move_puntuation -= 15* next_board.bar(WHITE)
+    # Tenir fitxes a la barra (-20 punts per fitxa)
+    move_puntuation -= 20 * next_board.bar(WHITE)
 
-    # Tenir fitxes soles (cada fitxa -5)
+    # Tenir fitxes soles (cada fitxa -15)
     for cell in next_board.cells():
         if cell == 1:
-            move_puntuation -= 5
+            move_puntuation -= 15
     
     return move_puntuation

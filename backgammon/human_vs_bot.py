@@ -61,13 +61,13 @@ def read_move(current_board: Board) -> Move:
         else:
             return move
 
-
 def main() -> None:
     """..."""
 
     seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
+    show(board)
     draw(board, "game.png")
     while not board.over():
         print(seed, board.dice(), board.turn(), board.cells(), board.bar(WHITE), board.bar(BLACK))  
@@ -75,11 +75,12 @@ def main() -> None:
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
+        show(board)
         draw(board, "game.png")
         
         if not board.over():
-            print(f"JPetit: I've got {board.dice().die1, board.dice().die2} let me think...")
             board = board.flip()
+            print(f"JPetit: I've got {board.dice().die1, board.dice().die2} let me think...")
             move = bot(board)
             if move.jumps:
                 print(f"JPetit: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
@@ -88,6 +89,7 @@ def main() -> None:
             board = board.play(move)
             board = board.next(cup.roll())
             board = board.flip()
+            show(board)
             draw(board, "game.png")
 
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")

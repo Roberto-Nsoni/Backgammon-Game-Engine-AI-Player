@@ -247,6 +247,7 @@ class Board:
 
                 # Si resulta que els daus són dobles, no cal provar per tots els daus restants, ja que són iguals
                 if current_board.dice().is_double():
+                    list_moves.append(current_move)
                     return list_moves
             
             # Si després de probar amb tots els daus no podem fer salts, afeigim el moviment que haguem fet fins aquest
@@ -307,7 +308,7 @@ class Board:
             return True
 
         # Si el salt es passa
-        furthest_point = min((pos for pos in range(18, 24) if (board.cell(pos) >= 1 and pos + jump.pips > 24)))
+        furthest_point = min((pos for pos in range(18, 24) if (board.cell(pos) >= 1 and pos + max(self.dice().die1, self.dice().die2) >= 24)))
         if jump.point + jump.pips > 24 and jump.point == furthest_point:
             return True
         

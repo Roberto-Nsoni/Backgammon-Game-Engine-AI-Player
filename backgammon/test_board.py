@@ -62,8 +62,14 @@ if __name__ == "__main__":
     # Bear off travieso
     test_validate_moves(Board(Dice(4,5), 27, [0, 0, -3, 0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 5, 0, -2], 0, 0)) 
 
+    # Bear off un movimiento exacto
+    test_validate_moves(Board(Dice(6, 2), cells=[0, 0, -2, -4, -4, -3, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 1, 1, 1, 0, 2]))
+
     # Sin movimientos posibles por bobo
     test_validate_moves(Board(Dice(3,3), cells=[-1, 3, -1, -1, -4, 0, 3, 0, 0, -5, 0, 5, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0, 4], barB = 1))
+    
+    # Un solo movimiento con 3 saltos
+    test_validate_moves(Board(Dice(4,4), cells=[0, -2, 0, -3, 2, -3, 0, 0, -5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 3, -2, 3, 0, 2, 0]))
 
     # Sin movimientos posibles porque tiene que sacar de la barra, pero está bloqueada
     test_validate_moves(Board(Dice(6,3), 1, [-2, 0, -2, -2, 0, -5, -2, 0, 0, 0, 0, 0, 0, 0, -1, -1, 4, 0, 9, 0, 0, 0, 1, 0], 1, 0)) 
@@ -82,8 +88,6 @@ if __name__ == "__main__":
     board = Board(Dice(6, 1), cells=[-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1])
     board = board.flip()
     move = (Move([Jump(23, 6)]))
-
-    # show_move(board, move)
 
     # Comprobar si la partida ha acabat (torn dels negres que han perdut)
     board = Board(Dice(2, 5),turn = 22, cells=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4])

@@ -1,8 +1,7 @@
-# arena.py
-import random
-import uuid
+import random, uuid, human_vs_human, bot
 from dataclasses import dataclass, field
-from board import Board, WHITE, DiceCup, Move, BLACK, Player
+from board import Board, WHITE, DiceCup, Move
+from show import show
 
 class UserRegistrationError(Exception):
     """Excepció per errors relacionats amb el resgistre d'usuaris."""
@@ -31,7 +30,7 @@ class User:
         """Retorna 'True' si el jugador es troba actualment en una partida, 
         retorna 'false' alternament"""
         # Comprobar que la última partida estigui acabada
-        return bool(self.list_games) and not self.list_games[-1].is_ended()
+        return bool(self.list_games) and not self.list_games[-1].end
     
     def add_game(self, game: "Game", won: bool) -> None:
         """Un cop finalitzada la partida, la afegeix a la llista de partides 
@@ -41,59 +40,26 @@ class User:
         if won:
             self.num_games_won += 1
 
+@dataclass
 class Game:
-    """Gestiona una partida entre dos usuaris"""
-    # Parametres
-    _id: str # Identificador únic per la partida
-    _user1: User # Jugador WHITE
-    _user2: User # Jugador BLACK
-    _seed: int # Llavor de la partida que gestiona els daus
-    _board: Board # Estat actual del tauler
-    _list_moves: list[Move] # Llista de tots els moviments que s'han fet
-    _end: bool # "True" si la partida està acabada, "False" alternament
-    
-    def __init__(self, user1: User, user2: User, seed: int = random.randint(1, 999_999_999),
-                 list_moves: list[Move] | None = None, board: Board | None = None) -> None:
-        """Inicialitza una nova partida entre dos usuaris, si no es customitza res
-        s'utilitzaran valors predeterminats, incloent una llavor aleatòria"""
-        self._cup =  DiceCup(seed)
-        self._id = str(uuid.uuid4())[:8]
-        self._user1 = user1
-        self._user2 = user2
-        self._seed = seed
-        self._list_moves = list_moves if list_moves else []
-        self._end = False
-        if board:
-            self._board = board
-        else:
-            self._board = Board(DiceCup(seed).roll())
-    
-    def id(self) -> str:
-        """Retorna l'id assossiat a la partida."""
-        return self._id
-    
-    def seed(self) -> int:
-        """Retorna la llavor assossiada a la partida"""
-        return self._seed
-    
-    def get_player(self, player: Player) -> User:
-        """Retorna l'usuari blanc(WHITE) o negre(BLACK) que està jugant a la partida."""
-        return self._user1 if player == WHITE else self._user2
-
-    def is_ended(self) -> bool:
-        """Retorna 'True' si la partida ja està acabada, retorna 'False' alternament."""
-        return self._end
-
-    def end_game(self) -> None:
-        """Canvia l'estat de la partida a 'Finalitzat'"""
-        self._end = True
+    """Gestiona una partida entre dos usuaris. si no es customitza res
+       s'inicialitza amb els valors predeterminats d'una nova partida, 
+       incloent una llavor aleatòria"""
+    id = str(uuid.uuid4())[:8] # Identifiacdon únic per la partida
+    user1: User # Jugador WHITE
+    user2: User # Jugador BLACK
+    seed: int = random.randint(1, 999_999_999) # Llavor de la partida que gestiona els daus
+    cup: DiceCup =  DiceCup(seed)
+    board: Board = Board(DiceCup(seed).roll()) # Estat actual del tauler
+    list_moves: list[Move] = field(default_factory=list) # Llista de tots els moviments que s'han fet
+    end: bool = False # "True" si la partida està acabada, "False" alternament
         
     def apply_move(self, move: Move) -> None:
         """Aplica un moviment donat al tauler, tot actualitzant-lo i afeigint aquest 
         moviment a la llista de moviments"""
-        self._board = self._board.play(move)
-        self._board.next(self._cup.roll())
-        self._list_moves.append(move)
+        self.board = self.board.play(move)
+        self.board = self.board.next(self.cup.roll())
+        self.list_moves.append(move)
 
 class Arena:
     """
@@ -103,14 +69,14 @@ class Arena:
     _reg_users: dict[str, User] # Llista de tots els usuaris registrats. Clau: user.id()
     _con_users: dict[str, User] # Llista de tots els usuaris connectats. Clau: user.id()
     _current_games: dict[str, Game] # Llista de totes les partides que s'estan jugant actualment. Clau: game.id()
-
+    
     def __init__(self, current_games: dict[str, Game] | None = None,
                 reg_users: dict[str, User] | None = None,
                 con_users: dict[str, User] | None = None) -> None:
         
-        """..."""
-        self._reg_users = reg_users if reg_users else {}
-        self._con_users = con_users if con_users else {}
+        """Constructor del programa, es considerarà com a bot el primer usuari"""
+        self._reg_users = reg_users if reg_users else {"JPetit": User("Jordi Petit", "JPetit")}
+        self._con_users = con_users if con_users else {"JPetit": User("Jordi Petit", "JPetit")}
         self._current_games = current_games if current_games else {}
     
     def register(self, user: User) -> None:
@@ -151,7 +117,7 @@ class Arena:
         
         if user.in_game():
             last_game = user.list_games[-1]
-            self.end_game(last_game.id(), not last_game.get_player(WHITE).id == user.id)
+            self.end_game(last_game.id, not last_game.user1.id == user.id)
         self._con_users.pop(user.id)
         user.connected = False
     
@@ -183,11 +149,11 @@ class Arena:
         
         raise LookupError("Aquest usuari no es troba registrat")
     
-    def start_new_game(self, user1: User, user2: User) -> str:
+    def start_new_game(self, user1: User, user2: User) -> Game:
         """Crea una nova partida entre dos usuaris, retorna el ID de la partida.
+        Si l'usuari2 és JPetit es considerarà que juga un humà contra un bot
         Prec: Els dos jugadors han d'estar connectats i cap dels dos ha de tenir una
         partida en curs."""
-
         # Assrgurar-se que es compleixen les precondicions
         if user1.id == user2.id:
             raise GameError("No pot jugar un usuari contra un mateix!")
@@ -195,23 +161,56 @@ class Arena:
             raise GameError("Els dos usuaris han d'estar connectats per poder jugar una nova partida!")
         if user1.in_game():
             raise GameError(f'{user1.id} is already playing a game!')
-        if user2.in_game():
+        if user2.id != "JPetit" and user2.in_game():
             raise GameError(f'{user2.id} is already playing a game!')
+
+        game = Game(user1, user2)
+
+        return game
     
-        new_game = Game(user1, user2)
-        self._current_games[new_game.id()] = new_game
+    def play(self, game: Game) -> None:
+        """Realitza una partida entre dos usuaris, si l'usuari BLACK és
+        el bot, juga el bot al torn de BLACK"""
+
+        show(game.board)
+        # Es juga fins que hi hagi un guanyador
+        while not game.board.over():
+            print("White move?")
+            move = human_vs_human.read_move(game.board)
+            game.apply_move(move)
+            show(game.board)
+            if not game.board.over():          
+                game.board = game.board.flip()
+                if game.user2.id == "JPetit":
+                    print(f"JPetit: I've got {game.board.dice().die1, game.board.dice().die2} let me think...")
+                    move = bot.bot(game.board)
+                    if move.jumps:
+                        print(f"JPetit: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
+                    else:
+                        print("JPetit: I skip my turn, I can't move (JPetit is sad :c)")
+                else:
+                    print("Black move?")
+                    move = human_vs_human.read_move(game.board)
+                game.apply_move(move)
+                game.board = game.board.flip()
+                show(game.board)
         
-        return new_game.id()
-    
+        # Un cop finalitza la partida es dona al guanyador
+        winner = "W" if game.board.winner() == WHITE else "B"
+        print(f"Guanyador: {winner}")
+        print(f"Moviments realitzats en aquesta partida: {game.list_moves}")
+        self.end_game(game.id, game.board.winner() == WHITE)
+
     def end_game(self, game_id: str, white_wins: bool) -> None:
-        """Fa acabar la partida, contabilitzant la corresponent victòria i derrota al blanc i al negre."""
+        """Fa acabar la partida, contabilitzant la corresponent victòria 
+        i derrota al blanc i al negre."""
         if game_id not in self._current_games:
             raise LookupError("Aquest partida no es troba en curs!")
         
         current_game = self._current_games.pop(game_id)
-        current_game.end_game()
-        user1 = current_game.get_player(WHITE)
-        user2 = current_game.get_player(BLACK)
+        current_game.end = True
+        user1 = current_game.user1
+        user2 = current_game.user2
         if white_wins:
             user1.add_game(current_game, True)
             user2.add_game(current_game, False)
@@ -226,15 +225,15 @@ class Arena:
             raise LookupError("Aquest jugador no es troba registrat!")
         return user.list_games
     
-    def get_game(self, user: User, game_id: str) -> tuple[Game, int | None]:
+    def get_game(self, user_id: str, game_id: str) -> tuple[Game, int | None]:
         """Retorna una partida en particular d'un usuari. Si és acabada, també 
         retorna la llavor del gobelet."""
 
-        if user.id not in self._reg_users:
+        if user_id not in self._reg_users:
             raise LookupError("Aquest jugador no es troba registrat!")
-        for game in user.list_games:
-            if game_id == game.id():
-                return game, game.seed() if game.is_ended() else None
+        for game in self.get_player_by_id(user_id).list_games:
+            if game_id == game.id:
+                return game, game.seed if game.end else None
             
         raise LookupError("La partida no es troba en la llista de partides d'aquest jugador!")
     
@@ -245,115 +244,135 @@ class Arena:
 def main() -> None:
     """Funció principial que permet navegar ente les diferents opcions de l'arena"""
     arena = Arena()
+    logged_in, logged_id = False, None
     while True:
-        print("\n--- Menú ---")
+        print("\nBenvingut al servidor de Backgammon!")
         print("0. Sortir")
         print("1. Registrar usuari")
         print("2. Iniciar sessió")
-        print("3. Tancar sesió")
-        print("4. Eliminar usuari")
-        print("5. Crear partida")
-        print("6. Veure usuaris registrats")
-        print("7. Veure usuaris connectats")
-        print("8. Veure partides en curs")
-        print("9. Veure partides d'un jugador")
-        print("10. Veure ranking de jugadors")
         
         option = input("Selecciona una opció: ")
 
         if option == "0":
-            print("Sortint de l'aplicació...")
+            print("Sortint...")
             break
-        
         if option == "1":
             nom = input("Nom: ")
             user_id = input("ID Usuari: ")
             user = User(nom, user_id)
-            
             try:
                 arena.register(user)
                 print(f"Usuari {user_id} registrat correctament.")
             except UserRegistrationError as e:
                 print(e)
-        
         elif option == "2":
             user_id = input("ID usuari: ")
             try:
                 arena.login(arena.get_player_by_id(user_id))
                 print(f"{user_id} ha iniciat sessió.")
+                logged_in = True
+                logged_id = user_id
             except (LookupError, UserLogError) as e:
                 print(e)
-        
-        elif option == "3":
-            user_id = input("ID Usuari: ")
-            try:
-                arena.logout(arena.get_player_by_name(user_id))
-                print(f"{user_id} ha tancat sessió.")
-            except (LookupError, UserLogError) as e:
-                print(e)
-
-
-        elif option == "4":
-            user_id = input("ID Usuari: ")
-            try:
-                arena.delete_user(arena.get_player_by_name(user_id))
-                print(f"Usuari {user_id} eliminat correctament.")
-            except (LookupError, GameError) as e:
-                print(f"Error: {e}")
-
-        elif option == "5":
-            print("Crear partida:")
-            user_id1 = input("ID Usuari del jugador WHITE: ")
-            user_id2 = input("ID Usuari del jugador BLACK: ")
-            try:
-                user1 = arena.get_player_by_name(user_id1)
-                user2 = arena.get_player_by_name(user_id2)
-                game_id = arena.start_new_game(user1, user2)
-                print(f"Partida creada correctament amb ID: {game_id}")
-            except GameError as e:
-                print(f"Error: {e}")
-
-        elif option == "6":
-            print("Usuaris registrats:")
-            for user in arena.get_reg_players():
-                print(user)
-                # print(f"Nickname: {user.id}, Nom: {user.name}, Winrate: {user.winrate()}%")
-        
-        elif option == "7":
-            print("Usuaris connectats:")
-            for user in arena.get_log_players():
-                print(user)
-                # print(f"Nickname: {user.id}, Nom: {user.name}")
-        
-        elif option == "8":
-            print("Partides en curs:")
-            current_games = arena.get_current_games()
-            if current_games:
-                for game in current_games:
-                    white = game.get_player(WHITE).id
-                    black = game.get_player(BLACK).id
-                    print(f"ID: {game.id()} - WHITE: {white} V.S. BLACK: {black}")
-            else:
-                print("No hi ha partides en curs.")
-        
-        elif option == "9":
-            user_id = input("ID Usuari: ")
-            game_id = input("ID Partida: ")
-            try:
-                game = arena.get_game(arena.get_player_by_id(user_id), game_id)
-                print(game)
-            except LookupError as e:
-                print(f"Error: {e}")
-
-        elif option == "10":
-            print("Ranking de jugadors:")
-            ranking = arena.get_ranking()
-            for i, user in enumerate(ranking):
-                print(f'{i} - {user}')
-                # print(f"{i}. {user.id} - Winrate: {user.winrate()}%")
-    
         else:
-            print("Opció no vàlida, siusplau trii una opció del 0 al 10.")
+            print("Opció no vàlida, torna a probar!")
+
+        while logged_in and logged_id:
+            print(f"\nBenvingut {logged_id}!")        
+            print("0. Tancar sesió")
+            print("1. Eliminar usuari")
+            print("2. Jugar partida")
+            print("3. Veure usuaris registrats")
+            print("4. Veure usuaris connectats")
+            print("5. Veure partides en curs")
+            print("6. Veure partides d'un jugador")
+            print("7. Veure ranking de jugadors")
+
+            option = input("Selecciona una opció: ")
+
+            if option == "0":
+                try:
+                    arena.logout(arena.get_player_by_name(logged_id))
+                    print(f"{logged_id} ha tancat sessió.")
+                    break
+                except (LookupError, UserLogError) as e:
+                    print(e)
+            if option == "1":
+                try:
+                    arena.delete_user(arena.get_player_by_name(logged_id))
+                    print(f"Usuari {logged_id} eliminat correctament.")
+                    break
+                except (LookupError, GameError) as e:
+                    print(f"Error: {e}")
+
+            if option == "2":
+                while True:  
+                    print("\nJugar partida")
+                    print("0 Tornar al menú principal")
+                    print("1 Jugar partida humà contra humà.")
+                    print("2 Jugar partida humà contra bot.")
+
+                    option = input("Seleccioni una opció: ")
+
+                    user1 = arena.get_player_by_id(logged_id)
+
+                    if option == "0":
+                        break
+                    elif option == "1":
+                        user_id2 = input("ID Usuari del jugador contra qui vulguis jugar: ")
+                    elif option == "2":
+                        user_id2 = "JPetit"
+                    else:
+                        print("Opció no válida. Torna a probar!")
+                        continue
+                    try:
+                        user2 = arena.get_player_by_id(user_id2)
+                        game = arena.start_new_game(user1, user2)
+                        print(f"Partida creada correctament amb ID: {game.id}")
+                        arena.play(game)
+                    except GameError as e:
+                        print(f"Error: {e}")
+
+            elif option == "3":
+                print("Usuaris registrats:")
+                for user in arena.get_reg_players():
+                    print(user)
+                    # print(f"Nickname: {user.id}, Nom: {user.name}, Winrate: {user.winrate()}%")
+            
+            elif option == "4":
+                print("Usuaris connectats:")
+                for user in arena.get_log_players():
+                    print(user)
+                    # print(f"Nickname: {user.id}, Nom: {user.name}")
+            
+            elif option == "5":
+                print("Partides en curs:")
+                current_games = arena.get_current_games()
+                if current_games:
+                    for game in current_games:
+                        white = game.user1.id
+                        black = game.user2.id
+                        print(f"ID: {game.id} - WHITE: {white} V.S. BLACK: {black}")
+                else:
+                    print("No hi ha partides en curs.")
+            
+            elif option == "6":
+                user_id = input("ID Usuari: ")
+                game_id = input("ID Partida: ")
+                try:
+                    game = arena.get_game(user_id, game_id)
+                    print(game)
+                except LookupError as e:
+                    print(f"Error: {e}")
+
+            elif option == "7":
+                print("Ranking de jugadors:")
+                ranking = arena.get_ranking()
+                for i, user in enumerate(ranking):
+                    print(f'{i} - {user}')
+                    # print(f"{i}. {user.id} - Winrate: {user.winrate()}%")       
+            else:
+                print("Opció no vàlida, torna a probar!")
 
 if __name__ == "__main__":
     main()
