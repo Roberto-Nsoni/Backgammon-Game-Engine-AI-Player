@@ -1,6 +1,6 @@
 import sys
 from board import Board, WHITE, DiceCup, Move, Jump, BLACK
-from show import show
+from show import show, draw # type: ignore
 from bot import bot
 
 def read_move(current_board: Board) -> Move:
@@ -68,14 +68,14 @@ def main() -> None:
     seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
-    show(board)
+    draw(board, "game.png")
     while not board.over():
         print(seed, board.dice(), board.turn(), board.cells(), board.bar(WHITE), board.bar(BLACK))  
         print("White move?")
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
-        show(board)
+        draw(board, "game.png")
         
         if not board.over():
             print(f"JPetit: I've got {board.dice().die1, board.dice().die2} let me think...")
@@ -84,11 +84,11 @@ def main() -> None:
             if move.jumps:
                 print(f"JPetit: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
             else:
-                print(f"JPetit: I skip my turn, I can't move (JPetit is sad :c)")
+                print("JPetit: I skip my turn, I can't move (JPetit is sad :c)")
             board = board.play(move)
             board = board.next(cup.roll())
             board = board.flip()
-            show(board)
+            draw(board, "game.png")
 
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")

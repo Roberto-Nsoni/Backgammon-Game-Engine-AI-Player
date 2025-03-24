@@ -1,6 +1,6 @@
 import sys
 from board import Board, WHITE, DiceCup, Move, Jump
-from show import show
+from show import draw, show # type: ignore
 
 def read_move(current_board: Board) -> Move:
     """
@@ -64,13 +64,13 @@ def main() -> None:
     seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
-    show(board)
+    draw(board, "game.png")
     while not board.over():
         print("White move?")
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
-        show(board)
+        draw(board, "game.png")
         if not board.over():
             print("Black move?")
             board = board.flip()
@@ -78,7 +78,7 @@ def main() -> None:
             board = board.play(move)
             board = board.next(cup.roll())
             board = board.flip()
-            show(board)
+            draw(board, "game.png")
 
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")

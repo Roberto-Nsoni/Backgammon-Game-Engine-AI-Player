@@ -1,3 +1,7 @@
+"""
+Arreglar winner
+"""
+
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
@@ -72,7 +76,7 @@ class Board:
     _offB: int # Nombre de fitxes que han salvat les negres
 
     def __init__(self, dice: Dice, turn: int = 1, cells: list[int] | None = None, barW: int = 0, barB: int = 0) -> None:
-        """..."""
+        """Construcció inicial del tauler, si no es personalitza res, es tracta com una nova partida."""
         self._dice = dice.copy()
         self._barW = barW
         self._barB = barB
@@ -129,22 +133,20 @@ class Board:
 
     def winner(self) -> OptionalPlayer:
         """Retorna el jugador que ha guanyat la partida (si encara no ha acabat, retorna None)"""
-
         if self.off(WHITE) == 15:
-            return WHITE if self.current() == WHITE else BLACK  
+            return WHITE 
         elif self.off(BLACK) == 15:
-            return BLACK if self.current() == WHITE else WHITE
+            return BLACK
         else:
             return None
 
     def over(self) -> bool:
-        """Retorna "True" si la partida ha acabat, retorna "False" alternament."""
+        """Retorna 'True' si la partida ha acabat, retorna "False" alternament."""
         return not self.winner() is None
 
     def valid_moves(self) -> list[Move]:
         """Retorna una llista amb tots els possibles moviments válids que es poden fer"""
-
-        # Verificar que la jugada té dobles
+        # Comprobar si la jugada té dobles
         if self.dice().is_double():
             list_dice = [self.dice().die1]*2 + [self.dice().die2]*2
         else:
@@ -169,7 +171,10 @@ class Board:
         return valid_moves
       
     def is_valid_move(self, move: Move) -> bool:
-        """..."""
+        """
+        Donat un moviment, retorna 'True' si aquest és vàlid, considerant l'estat
+        actual del tauler. Retorn 'False' alternament.
+        """
         return move in self.valid_moves()
 
     def play(self, move: Move) -> Board:
@@ -177,7 +182,6 @@ class Board:
         Retorna una copia del tauler després d'aplicar-li un moviment.
         Prec: El moviment ha de ser vàlid.
         """
-
         next_board = self.copy()
         for jump in move.jumps:
             jump_position = jump.point + jump.pips
@@ -212,10 +216,12 @@ class Board:
         return next_board
     
     def _generate_moves(self, current_board: Board, list_dice: list[int], list_moves: list[Move] = [], current_move: Move = Move(jumps=[])) -> list[Move]:
-        '''Donat un tauler i una llista de daus, tilitza generació exhaustiva per crear 
+        """
+        Donat un tauler i una llista de daus, utilitza generació exhaustiva per retornar una llista amb 
         tots els possibles moviments que es poden fer.
-        Diferenciar entre salts (moure una fitxa x posicions) de moviments (moure x fitxes y posicions)'''
-        # Si no tenim daus disponibles, no podem fer salts xd
+        Nota: Cal diferenciar entre salts (moure una fitxa x posicions) de moviments (moure x fitxes y posicions)
+        """
+        # Cas base: No tenim daus disponibles, per tant, no podem fer salts xd
         if list_dice == []:
             list_moves.append(current_move)
             return list_moves
@@ -243,15 +249,17 @@ class Board:
                 if current_board.dice().is_double():
                     return list_moves
             
+            # Si després de probar amb tots els daus no podem fer salts, afeigim el moviment que haguem fet fins aquest
             if not valid_jumps:
                 list_moves.append(current_move) 
 
             return list_moves
         
     def _generate_jumps(self, board: Board, die: int) -> list[Jump] | None:
-        '''Donat un tauler i un moviment de dau, retorna tots els possibles salts que es poden
-        fer en aquella jugada'''
-
+        """
+        Donat un tauler i un moviment de dau, retorna tots els salts legals que es poden
+        fer en aquella jugada.
+        """
         list_jumps: list[Jump] = []
 
         # Per fitxes a la barra
@@ -283,9 +291,10 @@ class Board:
         return list_jumps
     
     def _can_bear_off(self, board: Board, jump: Jump) -> bool:
-        '''Donat un tauler, retorna "True" si totes les fitxes blanques es troben al home 
-        per fer "bear off". Retorna "False" alternament.'''
-
+        """
+        Donat un tauler, retorna "True" si totes les fitxes blanques es troben al home 
+        per fer "bear off". Retorna "False" alternament.
+        """
         # Assegurar-se de que no hi ha cap fitxa fora del home board, sino pot fer "bear off".
         for position, points in enumerate(board.cells()): # position: nombre casella, points: fitxes a la casella
             if points >= 1 and position < 18:
@@ -303,15 +312,4 @@ class Board:
             return True
         
         return False
-    
-# Proves per saber si funciona
-if __name__ == "__main__":
-    import yogi, show
-    seed = 123454
-    cup = DiceCup(seed)
-    board = Board(Dice(5, 5))
-    while True:
-        show.show(board)
 
-        board = board.play(Move(jumps=[Jump(yogi.read(int), yogi.read(int)),Jump(yogi.read(int), yogi.read(int)), Jump(yogi.read(int), yogi.read(int)), Jump(yogi.read(int), yogi.read(int))]))
-        board = board.next(cup.roll())

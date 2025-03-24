@@ -1,6 +1,6 @@
 from board import Board, DiceCup, WHITE, BLACK
 from bot import bot
-from show import show
+from show import show, draw # type: ignore
 
 def main():
     seed = 12345
@@ -15,7 +15,7 @@ def main():
         if move.jumps:
             print(f"JPetit: I'm moving {[(jump.point + 1, jump.pips) for jump in move.jumps]}")
         else:
-            print(f"JPetit: I skip my turn, I can't move (JPetit is sad :c)")
+            print("JPetit: I skip my turn, I can't move (JPetit is sad :c)")
   
         board = board.play(move)
         board = board.next(cup.roll())
@@ -29,7 +29,7 @@ def main():
             if move.jumps:
                 print(f"JPetitEvil: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
             else:
-                print(f"JPetitEvil: I skip my turn, I can't move (JPetitEvil is turnin' more evil :c)")
+                print("JPetitEvil: I skip my turn, I can't move (JPetitEvil is turnin' more evil :c)")
             board = board.play(move)
             board = board.next(cup.roll())
             board = board.flip()
