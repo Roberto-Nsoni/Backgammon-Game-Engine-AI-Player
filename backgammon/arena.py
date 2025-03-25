@@ -32,13 +32,10 @@ class User:
         # Comprobar que la última partida estigui acabada
         return bool(self.list_games) and not self.list_games[-1].end
     
-    def add_game(self, game: "Game", won: bool) -> None:
-        """Un cop finalitzada la partida, la afegeix a la llista de partides 
-        jugades i la contabilitza."""
+    def add_new_game(self, game: "Game") -> None:
+        """Afegeix un nou joc a la llista de partides jugades"""
         self.list_games.append(game)
         self.num_games += 1
-        if won:
-            self.num_games_won += 1
 
 @dataclass
 class Game:
@@ -75,8 +72,8 @@ class Arena:
                 con_users: dict[str, User] | None = None) -> None:
         
         """Constructor del programa, es considerarà com a bot el primer usuari"""
-        self._reg_users = reg_users if reg_users else {"JPetit": User("Jordi Petit", "JPetit")}
-        self._con_users = con_users if con_users else {"JPetit": User("Jordi Petit", "JPetit")}
+        self._reg_users = reg_users if reg_users is not None else {"JPetit": User("Jordi Petit", "JPetit")}
+        self._con_users = con_users if con_users is not None else {"JPetit": User("Jordi Petit", "JPetit")}
         self._current_games = current_games if current_games else {}
     
     def register(self, user: User) -> None:
@@ -94,9 +91,7 @@ class Arena:
             raise GameError("Aquest jugador es troba actualment en una partida, siusplau esperi a acabar-la abans d'eliminar-lo.")
         
         self._reg_users.pop(user.id)
-        if user.id in self._con_users:
-            self._con_users.pop(user.id)
-        
+
     def login(self, user: User) -> None:
         "Fa entrar a un usuari (el connecta, fa login) a l'aplicació."
         if user.id not in self._reg_users:
@@ -113,11 +108,9 @@ class Arena:
             raise LookupError("Aquest usuari no es troba registrat")
         if not user.connected:
             raise UserLogError("Aquest usuari ja es troba desconnectat")
-        # Si el jugador es troba en partida, es donarà com a "perduda"
-        
         if user.in_game():
-            last_game = user.list_games[-1]
-            self.end_game(last_game.id, not last_game.user1.id == user.id)
+            raise GameError("Aquest jugador es troba actualment en una partida, siusplau esperi a acabar-la abans d'eliminar-lo.")
+        
         self._con_users.pop(user.id)
         user.connected = False
     
@@ -140,14 +133,16 @@ class Arena:
 
         return self._reg_users[user_id]
 
-    def get_player_by_name(self, name: str) -> User:
+    def get_player_by_name(self, name: str) -> list[User]:
         """Busca un usuari pel seu nom de pila. Cal considerar que poden
         haver varies persones amb el mateix nom."""
+        users: list[User] = []
         for user in self.get_reg_players():
             if user.name == name:
-                return user
-        
-        raise LookupError("Aquest usuari no es troba registrat")
+                users.append(user)
+        if not users:
+            raise LookupError("Aquest usuari no es troba registrat")
+        return users
     
     def start_new_game(self, user1: User, user2: User) -> Game:
         """Crea una nova partida entre dos usuaris, retorna el ID de la partida.
@@ -157,7 +152,7 @@ class Arena:
         # Assrgurar-se que es compleixen les precondicions
         if user1.id == user2.id:
             raise GameError("No pot jugar un usuari contra un mateix!")
-        if not (user1.connected or user2.connected):
+        if not (user1.connected and user2.connected):
             raise GameError("Els dos usuaris han d'estar connectats per poder jugar una nova partida!")
         if user1.in_game():
             raise GameError(f'{user1.id} is already playing a game!')
@@ -165,10 +160,14 @@ class Arena:
             raise GameError(f'{user2.id} is already playing a game!')
 
         game = Game(user1, user2)
-
+        
+        # Actualitzar correctament tota la informació
+        self._current_games[game.id] = game
+        user1.add_new_game(game)
+        user2.add_new_game(game)
         return game
     
-    def play(self, game: Game) -> None:
+    def play(self, game: Game) -> None: # pragma: no cover
         """Realitza una partida entre dos usuaris, si l'usuari BLACK és
         el bot, juga el bot al torn de BLACK"""
 
@@ -212,11 +211,9 @@ class Arena:
         user1 = current_game.user1
         user2 = current_game.user2
         if white_wins:
-            user1.add_game(current_game, True)
-            user2.add_game(current_game, False)
+            user1.num_games_won += 1
         else:
-            user1.add_game(current_game, False)
-            user2.add_game(current_game, True)
+            user2.num_games_won += 1
             
 
     def get_user_games(self, user: User) -> list[Game]:
@@ -241,7 +238,7 @@ class Arena:
         """Retorna la classificació dels usuaris, ordenats per percentatge de partides guanyades."""
         return sorted(self._reg_users.values(), key=lambda x: x.winrate(), reverse=True)
 
-def main() -> None:
+def main() -> None: # pragma: no cover
     """Funció principial que permet navegar ente les diferents opcions de l'arena"""
     arena = Arena()
     logged_in, logged_id = False, None
@@ -292,14 +289,14 @@ def main() -> None:
 
             if option == "0":
                 try:
-                    arena.logout(arena.get_player_by_name(logged_id))
+                    arena.logout(arena.get_player_by_id(logged_id))
                     print(f"{logged_id} ha tancat sessió.")
                     break
                 except (LookupError, UserLogError) as e:
                     print(e)
             if option == "1":
                 try:
-                    arena.delete_user(arena.get_player_by_name(logged_id))
+                    arena.delete_user(arena.get_player_by_id(logged_id))
                     print(f"Usuari {logged_id} eliminat correctament.")
                     break
                 except (LookupError, GameError) as e:

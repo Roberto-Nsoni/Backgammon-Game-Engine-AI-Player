@@ -1,5 +1,10 @@
 """
-Arreglar winner
+Dudas:
+variables en ingles, comentarios en catalan?
+y si los tests personales fallan?: board.play un movimiento invalido --> prec: movimiento válido
+
+To do:
+Usar el OptionalPlayer
 """
 
 from __future__ import annotations
@@ -134,11 +139,10 @@ class Board:
     def winner(self) -> OptionalPlayer:
         """Retorna el jugador que ha guanyat la partida (si encara no ha acabat, retorna None)"""
         if self.off(WHITE) == 15:
-            return WHITE 
-        elif self.off(BLACK) == 15:
-            return BLACK
-        else:
-            return None
+            return WHITE if self.current() == WHITE else BLACK
+        if self.off(BLACK) == 15:
+            return BLACK if self.current() == WHITE else WHITE
+        return None
 
     def over(self) -> bool:
         """Retorna 'True' si la partida ha acabat, retorna "False" alternament."""
