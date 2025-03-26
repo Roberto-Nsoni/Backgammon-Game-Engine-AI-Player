@@ -17,7 +17,7 @@ def bot(board: Board) -> Move:
     return moves[0].move if moves else Move(jumps=[])
 
 def evaluate_moves(board: Board) -> list[EvaluatedMove]:
-    """..."""
+    """Donat un tauler, retorna una llista ordenada de les millors jugades possibles."""
     evaluated_moves: list[EvaluatedMove] = []
 
     # Evalua tots els possibles moviments del blanc

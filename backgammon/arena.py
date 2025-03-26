@@ -1,4 +1,5 @@
-import random, uuid, human_vs_human, bot
+import random, uuid, pickle
+import human_vs_human, bot
 from dataclasses import dataclass, field
 from board import Board, WHITE, DiceCup, Move
 from show import show
@@ -39,9 +40,11 @@ class User:
 
 @dataclass
 class Game:
-    """Gestiona una partida entre dos usuaris. si no es customitza res
+    """
+    Gestiona una partida entre dos usuaris. Si no es customitza res
        s'inicialitza amb els valors predeterminats d'una nova partida, 
-       incloent una llavor aleatòria"""
+       incloent una llavor aleatòria.
+       """
     id = str(uuid.uuid4())[:8] # Identifiacdon únic per la partida
     user1: User # Jugador WHITE
     user2: User # Jugador BLACK
@@ -52,8 +55,10 @@ class Game:
     end: bool = False # "True" si la partida està acabada, "False" alternament
         
     def apply_move(self, move: Move) -> None:
-        """Aplica un moviment donat al tauler, tot actualitzant-lo i afeigint aquest 
-        moviment a la llista de moviments"""
+        """
+        Aplica un moviment donat al tauler, tot actualitzant-lo i afeigint aquest 
+        moviment a la llista de moviments.
+        """
         self.board = self.board.play(move)
         self.board = self.board.next(self.cup.roll())
         self.list_moves.append(move)
@@ -238,9 +243,9 @@ class Arena:
         """Retorna la classificació dels usuaris, ordenats per percentatge de partides guanyades."""
         return sorted(self._reg_users.values(), key=lambda x: x.winrate(), reverse=True)
 
-def main() -> None: # pragma: no cover
+def main(arena: Arena) -> None: # pragma: no cover
     """Funció principial que permet navegar ente les diferents opcions de l'arena"""
-    arena = Arena()
+    
     logged_in, logged_id = False, None
     while True:
         print("\nBenvingut al servidor de Backgammon!")
@@ -276,7 +281,7 @@ def main() -> None: # pragma: no cover
 
         while logged_in and logged_id:
             print(f"\nBenvingut {logged_id}!")        
-            print("0. Tancar sesió")
+            print("0. Tancar sessió")
             print("1. Eliminar usuari")
             print("2. Jugar partida")
             print("3. Veure usuaris registrats")
@@ -370,6 +375,16 @@ def main() -> None: # pragma: no cover
                     # print(f"{i}. {user.id} - Winrate: {user.winrate()}%")       
             else:
                 print("Opció no vàlida, torna a probar!")
+    with open("arena.dat", "wb") as f:
+        pickle.dump(arena, f)
 
 if __name__ == "__main__":
-    main()
+    try:
+        with open("arena.dat", "rb") as f:
+            arena = pickle.load(f)
+            print("Dades de l'arena carregades correctament")
+    except FileNotFoundError:
+        arena = Arena()
+        print("Nova arena creada correctament")
+    
+    main(arena)

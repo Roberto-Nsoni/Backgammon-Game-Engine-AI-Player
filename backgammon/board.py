@@ -210,7 +210,6 @@ class Board:
                 next_board._cells[jump_position] += 1
 
         return next_board
-
         
     def next(self, dice: Dice) -> Board:
         """Retorna una copia del tauler preparat pel següent moviment."""

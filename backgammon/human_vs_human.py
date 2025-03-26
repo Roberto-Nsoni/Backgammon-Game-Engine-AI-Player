@@ -52,25 +52,34 @@ def read_move(current_board: Board) -> Move:
                 continue
         
         if not current_board.is_valid_move(move):
-            print("El moviment indicat no es valid, torna a probar!")
+            print("El moviment indicat no es valid, torna a probar!\n(Escriu '?' per veure els moviments possibles)")
         
         else:
             return move
 
 
 def main() -> None:
-    """..."""
-
+    """
+    Gestiona una partida entre dos persones humans. Representa a la terminal l'estat 
+    de cada moviment. Cada torn representa primer el moviment del WHITE i després el moviment del BLACK.
+    La partida finalitza quan un dels jugadors guanya la partida.
+    """
+    # Inicialització de la partida
     seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
     draw(board, "game.png")
+
+    # Jugar fins que acabi la partida
+    # Torn de WHITE
     while not board.over():
         print("White move?")
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
         draw(board, "game.png")
+
+        # Torn de BLACK
         if not board.over():
             print("Black move?")
             board = board.flip()
@@ -80,6 +89,7 @@ def main() -> None:
             board = board.flip()
             draw(board, "game.png")
 
+    # Donar els guanyadors i la llavor de la partida
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")
     print(f"Seed: {seed}")
 
