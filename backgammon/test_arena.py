@@ -26,13 +26,13 @@ def test_user_related() -> None:
 
     # --- Register ---
     arena.register(user1)
-    assert arena.get_player_by_id("test1") == user1
+    assert arena.get_user_by_id("test1") == user1
     with pytest.raises(LookupError):
-        arena.get_player_by_name("test1")
+        arena.get_user_by_name("test1")
 
     # Verificar que dos usuaris amb el mateix nom si poden existir, pero no amb el mateix ID
     arena.register(user2)
-    assert arena.get_player_by_name("UserBot") == [user1, user2]
+    assert arena.get_user_by_name("UserBot") == [user1, user2]
     with pytest.raises(UserRegistrationError):
         arena.register(User("UserBot", "test1"))
     
@@ -42,7 +42,7 @@ def test_user_related() -> None:
     with pytest.raises(LookupError): # Eliminar un usuari que no existeix
         arena.delete_user(user2)
     with pytest.raises(LookupError):
-        arena.get_player_by_id("test2")
+        arena.get_user_by_id("test2")
 
     # --- Login ---
     assert user1.connected == False

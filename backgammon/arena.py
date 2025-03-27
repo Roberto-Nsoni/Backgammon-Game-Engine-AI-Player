@@ -1,6 +1,7 @@
 import random, uuid, pickle
-import human_vs_human, bot
 from dataclasses import dataclass, field
+
+import human_vs_human, bot
 from board import Board, WHITE, DiceCup, Move
 from show import show
 
@@ -77,8 +78,9 @@ class Arena:
                 con_users: dict[str, User] | None = None) -> None:
         
         """Constructor del programa, es considerarà com a bot el primer usuari"""
-        self._reg_users = reg_users if reg_users is not None else {"JPetit": User("Jordi Petit", "JPetit")}
-        self._con_users = con_users if con_users is not None else {"JPetit": User("Jordi Petit", "JPetit")}
+        bot = User("Jordi Petit", "JPetit", connected=True)
+        self._reg_users = reg_users if reg_users is not None else {bot.id: bot}
+        self._con_users = con_users if con_users is not None else {bot.id: bot}
         self._current_games = current_games if current_games else {}
     
     def register(self, user: User) -> None:
@@ -131,14 +133,14 @@ class Arena:
         """Obtenir una llista de totes les partides actives actualment."""
         return list(self._current_games.values())
     
-    def get_player_by_id(self, user_id: str) -> User:
+    def get_user_by_id(self, user_id: str) -> User:
         """Busca un usuari pel seu indentificador."""
         if user_id not in self._reg_users:
             raise LookupError("No hem pogut trobar aquest jugador")
 
         return self._reg_users[user_id]
 
-    def get_player_by_name(self, name: str) -> list[User]:
+    def get_user_by_name(self, name: str) -> list[User]:
         """Busca un usuari pel seu nom de pila. Cal considerar que poden
         haver varies persones amb el mateix nom."""
         users: list[User] = []
@@ -163,7 +165,7 @@ class Arena:
             raise GameError(f'{user1.id} is already playing a game!')
         if user2.id != "JPetit" and user2.in_game():
             raise GameError(f'{user2.id} is already playing a game!')
-
+        
         game = Game(user1, user2)
         
         # Actualitzar correctament tota la informació
@@ -233,7 +235,7 @@ class Arena:
 
         if user_id not in self._reg_users:
             raise LookupError("Aquest jugador no es troba registrat!")
-        for game in self.get_player_by_id(user_id).list_games:
+        for game in self.get_user_by_id(user_id).list_games:
             if game_id == game.id:
                 return game, game.seed if game.end else None
             
@@ -248,65 +250,81 @@ def main(arena: Arena) -> None: # pragma: no cover
     
     logged_in, logged_id = False, None
     while True:
-        print("\nBenvingut al servidor de Backgammon!")
+        print("\n---- Benvingut al servidor de Backgammon! ----")
         print("0. Sortir")
         print("1. Registrar usuari")
         print("2. Iniciar sessió")
         
         option = input("Selecciona una opció: ")
 
+        # Sortir del menú
         if option == "0":
-            print("Sortint...")
+            print("\nSortint...")
             break
+
+        # Registrar un nou usuari
         if option == "1":
-            nom = input("Nom: ")
+            nom = input("\nNom: ")
             user_id = input("ID Usuari: ")
             user = User(nom, user_id)
             try:
                 arena.register(user)
-                print(f"Usuari {user_id} registrat correctament.")
+                print(f"\nUsuari {user_id} registrat correctament.")
             except UserRegistrationError as e:
-                print(e)
+                print(f"\nError: {e}")
+
+        # Iniciar sessió com a usuari
         elif option == "2":
-            user_id = input("ID usuari: ")
+            user_id = input("\nID usuari: ")
             try:
-                arena.login(arena.get_player_by_id(user_id))
-                print(f"{user_id} ha iniciat sessió.")
+                arena.login(arena.get_user_by_id(user_id))
+                print(f"\n{user_id} ha iniciat sessió.")
                 logged_in = True
                 logged_id = user_id
             except (LookupError, UserLogError) as e:
-                print(e)
+                print(f"\nError: {e}")
         else:
-            print("Opció no vàlida, torna a probar!")
+            print("\nOpció no vàlida, torna a probar!")
 
+        # Un cop la sessió està iniciada, ja es poden fer moltes més coses
         while logged_in and logged_id:
-            print(f"\nBenvingut {logged_id}!")        
-            print("0. Tancar sessió")
+            print(f"\n---- Benvingut {logged_id}! ----")        
+            print("\n0. Tancar sessió")
             print("1. Eliminar usuari")
             print("2. Jugar partida")
             print("3. Veure usuaris registrats")
-            print("4. Veure usuaris connectats")
-            print("5. Veure partides en curs")
+            print("4. Veure partides en curs")
+            print("5. Veure detalls del perfil d'un usuari")
             print("6. Veure partides d'un jugador")
             print("7. Veure ranking de jugadors")
 
-            option = input("Selecciona una opció: ")
+            option = input("\nSelecciona una opció: ")
 
+            # Tancar la sessió i tornar al menú principal
             if option == "0":
                 try:
-                    arena.logout(arena.get_player_by_id(logged_id))
-                    print(f"{logged_id} ha tancat sessió.")
+                    arena.logout(arena.get_user_by_id(logged_id))
+                    print(f"\n{logged_id} ha tancat sessió.")
+                    logged_in, logged_id = False, None
                     break
                 except (LookupError, UserLogError) as e:
                     print(e)
-            if option == "1":
-                try:
-                    arena.delete_user(arena.get_player_by_id(logged_id))
-                    print(f"Usuari {logged_id} eliminat correctament.")
-                    break
-                except (LookupError, GameError) as e:
-                    print(f"Error: {e}")
 
+            # Eliminar l'usuari i tornar al menú principal
+            if option == "1":
+                confirmation = input("\nEstàs segur que vols eliminar aquest usuari?\n"
+                "Aquesta acció és irrecuperable!"
+                "(y/n): ")
+                if confirmation == "y":
+                    try:
+                        arena.delete_user(arena.get_user_by_id(logged_id))
+                        print(f"\nUsuari {logged_id} eliminat correctament.")
+                        logged_in, logged_id = False, None
+                        break
+                    except (LookupError, GameError) as e:
+                        print(f"\nError: {e}")
+
+            # Jugar una nova partida
             if option == "2":
                 while True:  
                     print("\nJugar partida")
@@ -314,74 +332,86 @@ def main(arena: Arena) -> None: # pragma: no cover
                     print("1 Jugar partida humà contra humà.")
                     print("2 Jugar partida humà contra bot.")
 
-                    option = input("Seleccioni una opció: ")
+                    option = input("\nSeleccioni una opció: ")
 
-                    user1 = arena.get_player_by_id(logged_id)
+                    user1 = arena.get_user_by_id(logged_id)
 
                     if option == "0":
                         break
-                    elif option == "1":
-                        user_id2 = input("ID Usuari del jugador contra qui vulguis jugar: ")
+                    if option == "1":
+                        user_id2 = input("\nID Usuari del jugador contra qui vulguis jugar: ")
                     elif option == "2":
                         user_id2 = "JPetit"
                     else:
-                        print("Opció no válida. Torna a probar!")
+                        print("\nOpció no válida. Torna a probar!")
                         continue
                     try:
-                        user2 = arena.get_player_by_id(user_id2)
+                        user2 = arena.get_user_by_id(user_id2)
                         game = arena.start_new_game(user1, user2)
-                        print(f"Partida creada correctament amb ID: {game.id}")
+                        print(f"\nPartida creada correctament amb ID: {game.id}\n") 
                         arena.play(game)
                     except GameError as e:
-                        print(f"Error: {e}")
+                        print(f"\nError: {e}")
 
+            # Veure una llista dels usuaris registrats
             elif option == "3":
-                print("Usuaris registrats:")
+                print("\nUsuaris registrats:")
                 for user in arena.get_reg_players():
-                    print(user)
-                    # print(f"Nickname: {user.id}, Nom: {user.name}, Winrate: {user.winrate()}%")
+                    print(f"User ID: {user.id}, Nom: {user.name}, Winrate: {user.winrate()}%, Connectat: {user.connected}")
             
+            # Veure una llista de totes les partides en curs a l'Arena
             elif option == "4":
-                print("Usuaris connectats:")
-                for user in arena.get_log_players():
-                    print(user)
-                    # print(f"Nickname: {user.id}, Nom: {user.name}")
-            
-            elif option == "5":
-                print("Partides en curs:")
+                print("\nPartides en curs:")
                 current_games = arena.get_current_games()
                 if current_games:
                     for game in current_games:
                         white = game.user1.id
                         black = game.user2.id
-                        print(f"ID: {game.id} - WHITE: {white} V.S. BLACK: {black}")
+                        print(f"\nID: {game.id} - WHITE: {white} V.S. BLACK: {black}")
                 else:
-                    print("No hi ha partides en curs.")
+                    print("\nNo hi ha partides en curs.")
+
+            # Veure el perfil detallat d'un usuari
+            elif option == "5":
+                user_id2 = input("\nID Usuari: ")
+                try:
+                    user = arena.get_user_by_id(user_id2)
+                    print(user)
+                except LookupError as e:
+                    print(e)
             
+            # Veure els detalls d'una partida d'un usuari
             elif option == "6":
-                user_id = input("ID Usuari: ")
+                user_id = input("\nID Usuari: ")
                 game_id = input("ID Partida: ")
                 try:
-                    game = arena.get_game(user_id, game_id)
-                    print(game)
-                except LookupError as e:
-                    print(f"Error: {e}")
+                    game, seed = arena.get_game(user_id, game_id)
 
+                    # Si la partida ha finalitzat, cal retornar també la llavor
+                    if seed:
+                        print(f"Partida finalitzada amb la llavor: {seed}")
+                    print(game)
+                    
+                except LookupError as e:
+                    print(f"\nError: {e}")
+
+            # Veure el ranking dels jugadors
             elif option == "7":
-                print("Ranking de jugadors:")
+                print("\nRanking de jugadors:")
                 ranking = arena.get_ranking()
                 for i, user in enumerate(ranking):
-                    print(f'{i} - {user}')
-                    # print(f"{i}. {user.id} - Winrate: {user.winrate()}%")       
+                    print(f"{i}. {user.id} - Winrate: {user.winrate()}%")       
             else:
-                print("Opció no vàlida, torna a probar!")
-    with open("arena.dat", "wb") as f:
-        pickle.dump(arena, f)
+                print("\nOpció no vàlida, torna a probar!")
+    
+    # Quan es vol sortir del menú, guardem les dades de l'arena
+    with open("arena-data.dat", "wb") as file:
+        pickle.dump(arena, file)
 
 if __name__ == "__main__":
     try:
-        with open("arena.dat", "rb") as f:
-            arena = pickle.load(f)
+        with open("arena-data.dat", "rb") as file:
+            arena = pickle.load(file)
             print("Dades de l'arena carregades correctament")
     except FileNotFoundError:
         arena = Arena()

@@ -1,10 +1,7 @@
-from board import Board, WHITE, BLACK, DiceCup, Move, Jump, Dice # type: ignore ###################
-from show import show # type: ignore #####################
-
-# these are just some sample tests
+from board import Board, WHITE, BLACK, Move, Jump, Dice
 
 def test_dice_is_valid():
-    """Check if dice.is_valid works."""
+    """Prova si dice.is_valid funciona correctament."""
 
     assert Dice(1, 1).is_valid()
     assert Dice(6, 6).is_valid()
@@ -17,7 +14,7 @@ def test_dice_is_valid():
 
 
 def test_dice_is_double():
-    """Check if dice.is_double works."""
+    """Prova si dice.is_double funciona correctament."""
 
     assert Dice(1, 1).is_double()
     assert Dice(6, 6).is_double()
@@ -26,7 +23,7 @@ def test_dice_is_double():
 
 
 def test_validate_moves():
-    """Check if board.valid_moves works"""
+    """Prova si board.valid_moves funciona correctament"""
     # Cas general
     board = Board(Dice(6, 2), cells=[0, 0, -2, -4, -4, -1, 0, -4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 1, 1, 1, 0, 2])
     assert board.is_valid_move(Move(jumps=[Jump(point=18, pips=6), Jump(point=18, pips=2)]))
@@ -47,7 +44,7 @@ def test_validate_moves():
     assert board.is_valid_move(Move(jumps=[Jump(point=23, pips=5), Jump(point=23, pips=4)]))
     assert board.is_valid_move(Move(jumps=[Jump(point=23, pips=4), Jump(point=23, pips=5)]))
 
-    # Bear off travieso
+    # Bear off no lliure
     board = Board(Dice(4,5), 27, [0, 0, -3, 0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 5, 5, 0, -2], 0, 0)
     assert len(board.valid_moves()) == 4
     assert board.is_valid_move(Move(jumps=[Jump(point=18, pips=4), Jump(point=20, pips=5)]))
@@ -55,18 +52,19 @@ def test_validate_moves():
     assert board.is_valid_move(Move(jumps=[Jump(point=20, pips=5), Jump(point=18, pips=4)]))
     assert board.is_valid_move(Move(jumps=[Jump(point=20, pips=5), Jump(point=20, pips=4)]))
    
-    # Un únic moviment possible amb 3 salts
-    board = Board(Dice(4,4), cells=[0, -2, 0, -3, 2, -3, 0, 0, -5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 3, -2, 3, 0, 2, 0])
-    assert len(board.valid_moves()) == 1
-    assert board.is_valid_move(Move(jumps=[Jump(point=18, pips=4), Jump(point=18, pips=4), Jump(point=18, pips=4)]))
-    
     # Un únic moviment possible amb 1 salt, cal jugar el del dau més gran
     board = Board(Dice(4, 6), cells=[0, 0, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, 0, 0, 0])
     assert board.is_valid_move(Move(jumps=[Jump(point=5, pips=6)]))
     assert not board.is_valid_move(Move(jumps=[Jump(point=5, pips=4)]))
 
+    # Un únic moviment possible amb 3 salts
+    board = Board(Dice(4,4), cells=[0, -2, 0, -3, 2, -3, 0, 0, -5, 0, 0, 0, 0, 0, 0, 5, 0, 0, 3, -2, 3, 0, 2, 0])
+    assert len(board.valid_moves()) == 1
+    assert board.is_valid_move(Move(jumps=[Jump(point=18, pips=4), Jump(point=18, pips=4), Jump(point=18, pips=4)]))
+
+
 def test_play():
-    """Check if board.play works to check if the board uptades correctly afer
+    """Prova si board.play funciona correctament to Prova si the board uptades correctly afer
     every move."""
 
     # Captura
@@ -96,8 +94,9 @@ def test_play():
     assert board.over()
     assert board.winner() == WHITE
 
+
 def test_over():
-    """Check if board.over and board.winner works"""
+    """Prova si board.over and board.winner funciona correctament"""
     # Comprobar si la partida ha acabat
     board = Board(Dice(2, 5),turn = 22, cells=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 2, 1, 0], barB=5)
     assert not board.over()
@@ -115,6 +114,7 @@ def test_over():
     assert board.over() and board.winner() == WHITE
     board = board.flip()
     assert board.over() and board.winner() == BLACK
+
 
 if __name__ == "__main__":
    ...

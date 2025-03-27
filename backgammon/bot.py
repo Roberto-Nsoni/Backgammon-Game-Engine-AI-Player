@@ -1,7 +1,6 @@
 from board import Board, Move, WHITE
 from dataclasses import dataclass
 
-
 @dataclass
 class EvaluatedMove:
     move: Move
@@ -26,7 +25,7 @@ def evaluate_moves(board: Board) -> list[EvaluatedMove]:
     white_moves.sort(key=lambda x: (x.score), reverse=True)
     
     # Por cada moviment que pot fer el blanc, suposem que el negre jugarà la millor resposta
-    for white_move in white_moves[:50]:
+    for white_move in white_moves:
         simulated_board = board.copy().play(white_move.move)
 
         # Trobar la millor resposta del negre
@@ -46,9 +45,9 @@ def evaluate_board(board: Board, move: Move) -> int:
     """
     Coses a tenir en compte:
     1) Quan més avançades les fitxes millor (cada posició +1)
-    2) Fer "bear off" (cada fitxa +50)
-    3) Tenir fitxes a la barra (-25 per fitxa)
-    4) Tenir fitxes soles (cada fitxa -5)
+    2) Fer "bear off" (cada fitxa +30)
+    3) Tenir fitxes a la barra (-20 per fitxa)
+    4) Tenir fitxes soles (cada fitxa -15)
     """
     move_puntuation = 0
     next_board = board.copy().play(move)

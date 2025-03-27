@@ -1,12 +1,3 @@
-"""
-Dudas:
-variables en ingles, comentarios en catalan?
-y si los tests personales fallan?: board.play un movimiento invalido --> prec: movimiento válido
-
-To do:
-Usar el OptionalPlayer
-"""
-
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal

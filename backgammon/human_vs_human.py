@@ -1,6 +1,6 @@
 import sys
 from board import Board, WHITE, DiceCup, Move, Jump
-from show import draw, show # type: ignore
+from show import show
 
 def read_move(current_board: Board) -> Move:
     """
@@ -68,7 +68,7 @@ def main() -> None:
     seed = 123456
     cup = DiceCup(seed)
     board = Board(cup.roll())
-    draw(board, "game.png")
+    show(board)
 
     # Jugar fins que acabi la partida
     # Torn de WHITE
@@ -77,7 +77,7 @@ def main() -> None:
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
-        draw(board, "game.png")
+        show(board)
 
         # Torn de BLACK
         if not board.over():
@@ -87,7 +87,7 @@ def main() -> None:
             board = board.play(move)
             board = board.next(cup.roll())
             board = board.flip()
-            draw(board, "game.png")
+            show(board)
 
     # Donar els guanyadors i la llavor de la partida
     print(f"Winner: {'W' if board.winner() == WHITE else 'B'}")

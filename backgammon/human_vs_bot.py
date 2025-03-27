@@ -1,6 +1,6 @@
 import human_vs_human
 from board import Board, WHITE, DiceCup, BLACK
-from show import show, draw # type: ignore
+from show import show
 from bot import bot
 
 def main() -> None:
@@ -15,6 +15,7 @@ def main() -> None:
     cup = DiceCup(seed)
     board = Board(cup.roll())
     show(board)
+
     # Jugar fins que acabi la partida
     # Torn de l'humà
     while not board.over():

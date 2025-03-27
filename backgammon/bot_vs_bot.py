@@ -1,5 +1,5 @@
-from show import show
 from board import Board, DiceCup, WHITE
+from show import show
 from bot import bot
 
 def main():
