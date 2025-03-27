@@ -209,7 +209,7 @@ class Arena:
 
     def end_game(self, game_id: str, white_wins: bool) -> None:
         """Fa acabar la partida, contabilitzant la corresponent victòria 
-        i derrota al blanc i al negre."""
+        i derrota al blanc o al negre."""
         if game_id not in self._current_games:
             raise LookupError("Aquest partida no es troba en curs!")
         

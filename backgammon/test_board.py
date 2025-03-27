@@ -114,7 +114,3 @@ def test_over():
     assert board.over() and board.winner() == WHITE
     board = board.flip()
     assert board.over() and board.winner() == BLACK
-
-
-if __name__ == "__main__":
-   ...

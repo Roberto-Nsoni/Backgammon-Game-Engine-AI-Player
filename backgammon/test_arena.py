@@ -2,6 +2,7 @@ import pytest
 from arena import User, Arena, UserRegistrationError, UserLogError, GameError
 
 def test_apply_move():
+    """Provar si game.apply_move() funciona correctament."""
     arena = Arena(reg_users={}, con_users={}, current_games={})
     user1 = User("Test1", "test1")
     user2 = User("Test2", "test2")
@@ -17,6 +18,7 @@ def test_apply_move():
     assert move in game.list_moves
     
 def test_user_related() -> None:
+    """Provar si accions relacionades amb el registre/login/logout/delete funcionen correctament."""
     # Inicialitzem una arena buida
     arena = Arena(reg_users={}, con_users={}, current_games={})
 
@@ -27,6 +29,9 @@ def test_user_related() -> None:
     # --- Register ---
     arena.register(user1)
     assert arena.get_user_by_id("test1") == user1
+    with pytest.raises(LookupError):
+        arena.get_user_by_id("test2")
+
     with pytest.raises(LookupError):
         arena.get_user_by_name("test1")
 
@@ -67,6 +72,8 @@ def test_user_related() -> None:
         arena.logout(user1)
 
 def test_games():
+    """Provar si es crea, juga i acaba correctament una partida. També comproba que estadístiques
+    com el número de partides jugades i guanyades s'actualitzin."""
     arena = Arena(reg_users={}, con_users={}, current_games={})
     user1 = User("User 1", "test1")
     user2 = User("User 2", "test2")
@@ -122,7 +129,3 @@ def test_games():
     arena.login(user3)
     with pytest.raises(LookupError): # Buscar una partida que no ha jugat
         arena.get_game(user3.id, game2.id)
-    
-
-if __name__ == "__main__":
-    test_apply_move()
