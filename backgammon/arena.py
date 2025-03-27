@@ -305,7 +305,7 @@ def main(arena: Arena) -> None: # pragma: no cover
                 try:
                     arena.logout(arena.get_user_by_id(logged_id))
                     print(f"\n{logged_id} ha tancat sessió.")
-                    logged_in, logged_id = False, None
+                    logged_in = False
                     break
                 except (LookupError, UserLogError) as e:
                     print(e)
@@ -319,7 +319,7 @@ def main(arena: Arena) -> None: # pragma: no cover
                     try:
                         arena.delete_user(arena.get_user_by_id(logged_id))
                         print(f"\nUsuari {logged_id} eliminat correctament.")
-                        logged_in, logged_id = False, None
+                        logged_in = False
                         break
                     except (LookupError, GameError) as e:
                         print(f"\nError: {e}")
@@ -391,7 +391,7 @@ def main(arena: Arena) -> None: # pragma: no cover
                     if seed:
                         print(f"Partida finalitzada amb la llavor: {seed}")
                     print(game)
-                    
+
                 except LookupError as e:
                     print(f"\nError: {e}")
 
