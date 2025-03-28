@@ -19,9 +19,9 @@ def read_move(current_board: Board) -> Move:
         if line == ["?"]:
             valid_moves = current_board.valid_moves()
             if valid_moves == blank_move:
-                print("You dont have possible moves, please skip your turn!")
+                print("No tens moviments possibles. Siusplau, passa el torn!")
                 continue
-            print("Possible move list:")
+            print("Llista de moviments possibles:")
             for index, move in enumerate(valid_moves):
                 print(f"{index + 1}: ", end="")
                 for jump in move.jumps:
@@ -34,11 +34,12 @@ def read_move(current_board: Board) -> Move:
             if current_board.valid_moves() == [blank_move]:
                 return blank_move
             
-        # Error la entrada no té el el par complet (point, pip)
+        # Si l'entrada no té el el par complet (point, pip)
         if len(line) % 2 != 0:
             print("La entrada no té el parell (point, pip), torna a probar!")
             continue
         
+        # Si tot va bé
         move = Move(jumps=[])
         for i in range(0, len(line), 2):
             try:
@@ -51,10 +52,12 @@ def read_move(current_board: Board) -> Move:
                 print("El moviment indicat no està correctament escrit, torna a intetar!")
                 continue
         
+
         if not current_board.is_valid_move(move):
             print("El moviment indicat no es valid, torna a probar!\n(Escriu '?' per veure els moviments possibles)")
         
         else:
+            print("Perfecte!")
             return move
 
 
@@ -73,7 +76,7 @@ def main() -> None:
     # Jugar fins que acabi la partida
     # Torn de WHITE
     while not board.over():
-        print("White move?")
+        print("Torn del blanc!")
         move = read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
@@ -81,7 +84,7 @@ def main() -> None:
 
         # Torn de BLACK
         if not board.over():
-            print("Black move?")
+            print("Torn del negre!")
             board = board.flip()
             move = read_move(board)
             board = board.play(move)

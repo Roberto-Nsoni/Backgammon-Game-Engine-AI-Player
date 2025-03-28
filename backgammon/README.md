@@ -1,9 +1,9 @@
-# Primera Pràctica d'AP2: Backgammon
+# 🎲 Primera Pràctica d'AP2: Backgammon
 En aquest projecte es desenvolupa un nucli d'un servidor de Backgammon.
     
 S'implementa la lògica del joc, permet a dues persones jugar entre si, es programa un bot que pot jugar contra altres humans o bots... També s'implementa una `Arena` que compleix el rol de gestor de partides, el qual permet emmagatzemar dades d'usuaris, deixar que juguin entre ells...
 
-## Estructura del projecte
+## 🗂️ Estructura del projecte
 El projecte s'estructura en diferents mòduls on cadascun compleix un objectiu específic:
 
 ### 1. Mòdul `board.py`
@@ -59,15 +59,25 @@ Aquest mòdul compleix el rol de gestor d'usuaris i partides. Conté les següen
 
 - Dataclass `User`:
 
-    Representació d'un usuari a l'aplicació. Emmagatzema informació com el nom d'usuari, el numero de partides jugades i guanyades, la llista de partides, l'estatus connectat/desconnectat...
+    Representació d'un usuari a l'aplicació. Emmagatzema q informació com el nom d'usuari, el numero de partides jugades i guanyades, la llista de partides, l'estatus connectat/desconnectat...
+
 - Dataclass `Game`:
     
     Representa i gestiona una partida entre dos usuaris. Conté informació com els usuaris que juguen, la llavor del gobelet, l'estat del tauler, el nombre de moviments, l'estatus en curs/acabat...
+
 - Classe `Arena`:
 
     Gestiona l'arena on es juguen les partides, els usuaris registrats, connectats i les partides que estiguin actives en aquell moment.
 
-## Característiques
+A més, es defineixen unes excepcions específiques que ajuden a gestionar de millor manera els diferents errors que es poden produir durant la interacció amb l'aplicació:
+
+- `UserRegistrationError`: Aquesta excepció s'eleva quan es produeix un error relacionat amb el registre d'usuaris, per exemple, si s'intenta registrar un usuari amb un ID que ja hi està registrat.
+
+- `UserLogError`: S'utilitza per a errors relacionats amb el login/logout dels usuaris. Per exemple, es pot generar quan s'intenta tancar la sessió d'un usuari que ja està desconnectat.
+
+- `GameError`: S'aixeca per errors relacionats amb la gestió interna de les partides, per exemple, quan s'intenta eliminar un usuari que encara participa en una partida.
+
+## ✨ Característiques
 
 1. **Persistència de Dades**: S'implementa un senzill que permet desar i recuperar un objecte Arena a/des d'un fitxer usant el mòdul `pickle`.
 
@@ -77,12 +87,12 @@ Aquest mòdul compleix el rol de gestor d'usuaris i partides. Conté les següen
 
 4. **Proves unitàries**: Per garantir que la lògica del joc i la gestió interna de les partides de l'`arena` funcionen correctament, el projecte disposa de jocs de prova que faciliten detectar errors si en algun moment es decideix canviar alguna part.
 
-## Com jugar?
-Abans d'executar qualsevol programa, és important que es tingui instal·lat una versió igual o superior a Python 3.8, ja que totes les dependències i llibreries que s'utilitzen en aquest projecte es troben a la biblioteca estàndard.
+## 🎮 Com jugar?
+Abans d'executar qualsevol programa, és important que es tingui instal·lat una versió igual o superior a Python 3.8, ja que totes les dependències i llibreries que s'utilitzen en aquest projecte es troben a la biblioteca estàndard. Les llibreries utilitzades son: future, cataclasses, typing, sys, random, uuid, pickle i pytest.
 
-El mode de joc recomanat és el mode arena, perquè des d'allà es pot accedir a la resta de mòduls sense posar una comanda per cada joc que es vulgui fer.
+També és pots trobar el detall de les regles del backgammon a https://www.bkgm.com/rules.html i és convenient que es tinguin ben clares.
 
-No obstant això, es pot accedir a un mòdul determinat i una partida concreta amb les comandes que s'expliquen a continuació:
+El mode de joc recomanat és el mode arena, perquè des d'allà es pot accedir a la resta de mòduls sense posar una comanda per cada joc que es vulgui fer. No obstant això, es pot accedir a un mòdul determinat i una partida concreta amb les comandes que s'expliquen a continuació:
 
 ### Jugar: Human Vs. Human
 Per jugar una partida entre dos humans, cal escriure a la línia de comandes el següent:
@@ -97,12 +107,14 @@ Per a cada torn sortirà, representat a la terminal, l'estat actual del tauler (
 
 Per poder interactuar amb el tauler escriviu la combinació de parells (posició, dau) que vulgueu i, si el moviment és vàlid, s'executarà. Per exemple, si escriviu `12 3 19 1` es mourà la fitxa en la posició `12` amb el dau `3` (és a dir mourà a la posició 12 + 3 = 15) i la fitxa en la posició `19` amb el dau `1`.
 
-#### NOTA 1
-- Les llavors que s'utilitzen per generar els daus pseudoaleatoris en `human_vs_human.py`, `human_vs_bot.py`, `bot_vs_bot.py` són les mateixes en totes les partides, per canviar la generació dels daus, s'ha de canviar manualment el valor de la variable `seed`.
+#### ❗❗NOTA 1: Comandes especials❗❗
+- **Consultar moviments disponibles**: Si voleu saber la llista de moviments que teniu disponibles, escriviu `"?"`. De totes maneres, si doneu un moviment invàlid, s'escriurà en la terminal la llista de moviments que podeu fer.
 
-- Si voleu saber la llista de moviments que teniu disponibles, escriviu `"?"`. De totes maneres, si doneu un moviment invàlid, s'escriurà en la terminal la llista de moviments que podeu fer.
+- **Representació de la barra**: La posició de la barra es representa amb el número `0`.
 
-- En cas que no es puguin fer moviments, simplement feu un "enter" a la terminal.
+- **Pasar el torn**: En cas que no es puguin fer moviments, simplement s'ha de prémer "enter" a la terminal (sense introduir cap comanda).
+
+Les llavors que s'utilitzen per generar els daus pseudoaleatoris en `human_vs_human.py`, `human_vs_bot.py`, `bot_vs_bot.py` són les mateixes en totes les partides, per canviar la generació dels daus, s'ha de canviar manualment el valor de la variable `seed`.
 
 ### Jugar: Human Vs. Bot
 Per jugar una partida entre un humà i un bot, cal escriure a la lina de comandes el següent:
@@ -145,14 +157,14 @@ Un cop heu iniciat sessió podreu accedir a les funcionalitats completes de l'`A
 6. Veure en detall la partida d'un usuari
 7. Veure el ranking de jugadors ordenats pel percentatge de victòries.
 
-#### NOTA 2: **IMPORTANT**
+#### ⚠️ NOTA 2: Consideracions importants ⚠️
 **Encara que algunes coses no es puguin fer directament desde la terminal, si estan internament implementades:**
 
 - Per tal d'evitar una experiència aclaparadora, només estan disponibles les funcionalitats més rellevants que l'`Arena` ofereix (per exemple, l'opció de veure en detall el perfil d'un usuari només està acotat només pel seu nom d'usuari). 
 
 - Per la lògica actual del menú de l'`Arena`, només es pot jugar contra un bot, ja que no es pot tenir dues sessions iniciades a la mateixa terminal (:c)
 
-## Execució de Tests
+## ✅ Execució de Tests
 Per provar que tot funciona correctament, el projecte compta amb unes proves unitàries que cobreixen alguns dels casos més comuns a l'hora de jugar, així com alguns casos específics que puguin semblar conflictius per veure si es resolen de la manera esperada. Els tests cobreixen els mòduls que implementen la lògica del tauler del backgammon i de l'arena, les coses que estan relacionades amb l'interfície no es proven. Podeu executar les proves amb la comanda:
 ```bash
 python -m pytest .

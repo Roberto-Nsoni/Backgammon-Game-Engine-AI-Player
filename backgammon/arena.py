@@ -121,11 +121,11 @@ class Arena:
         self._con_users.pop(user.id)
         user.connected = False
     
-    def get_reg_players(self) -> list[User]:
+    def get_reg_users(self) -> list[User]:
         """Retorna una llista de tots els usuaris registrats."""
         return list(self._reg_users.values())
     
-    def get_log_players(self) -> list[User]:
+    def get_log_users(self) -> list[User]:
         """Obtenir una llista de tots els usuaris connectats."""
         return list(self._con_users.values())
 
@@ -144,7 +144,7 @@ class Arena:
         """Busca un usuari pel seu nom de pila. Cal considerar que poden
         haver varies persones amb el mateix nom."""
         users: list[User] = []
-        for user in self.get_reg_players():
+        for user in self.get_reg_users():
             if user.name == name:
                 users.append(user)
         if not users:
@@ -174,7 +174,7 @@ class Arena:
         user2.add_new_game(game)
         return game
     
-    def play(self, game: Game) -> None: # pragma: no cover
+    def play(self, game: Game) -> None: # pragma: no cover (no fa falta fer tests per comprobar que funciona)
         """Realitza una partida entre dos usuaris, si l'usuari BLACK és
         el bot, juga el bot al torn de BLACK"""
 
@@ -245,7 +245,7 @@ class Arena:
         """Retorna la classificació dels usuaris, ordenats per percentatge de partides guanyades."""
         return sorted(self._reg_users.values(), key=lambda x: x.winrate(), reverse=True)
 
-def main(arena: Arena) -> None: # pragma: no cover
+def main(arena: Arena) -> None: # pragma: no cover (no fa falta comprobar amb tests si funciona, té més sentit provar-ho)
     """Funció principial que permet navegar ente les diferents opcions de l'arena"""
     
     logged_in, logged_id = False, None
@@ -356,7 +356,7 @@ def main(arena: Arena) -> None: # pragma: no cover
             # Veure una llista dels usuaris registrats
             elif option == "3":
                 print("\nUsuaris registrats:")
-                for user in arena.get_reg_players():
+                for user in arena.get_reg_users():
                     print(f"User ID: {user.id}, Nom: {user.name}, Winrate: {user.winrate()}%, Connectat: {user.connected}")
             
             # Veure una llista de totes les partides en curs a l'Arena
@@ -408,7 +408,7 @@ def main(arena: Arena) -> None: # pragma: no cover
     with open("arena-data.dat", "wb") as file:
         pickle.dump(arena, file)
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover (no fa falta fer tests en aquesta part)
     try:
         with open("arena-data.dat", "rb") as file:
             arena = pickle.load(file)

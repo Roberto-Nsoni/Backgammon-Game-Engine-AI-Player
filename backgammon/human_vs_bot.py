@@ -20,7 +20,7 @@ def main() -> None:
     # Torn de l'humà
     while not board.over():
         print(seed, board.dice(), board.turn(), board.cells(), board.bar(WHITE), board.bar(BLACK))  
-        print("White move?")
+        print("Torn del blanc!")
         move = human_vs_human.read_move(board)
         board = board.play(move)
         board = board.next(cup.roll())
@@ -29,12 +29,12 @@ def main() -> None:
         # Torn del bot
         if not board.over():
             board = board.flip()
-            print(f"JPetit: \033[3mI've got {board.dice().die1, board.dice().die2} let me think...\033[0m")
+            print(f"JPetit: \033[3mTinc els daus: {board.dice().die1, board.dice().die2} deixa'm pensar...\033[0m")
             move = bot(board)
             if move.jumps:
-                print(f"JPetit: \033[3mI'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}\033[0m")
+                print(f"JPetit: \033[3mCrec que mouré {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}\033[0m")
             else:
-                print("JPetit: \033[3mI skip my turn, I can't move\033[0m (JPetit is sad :c)")
+                print("JPetit: \033[3mPasso el meu torn, no puc moure fitxes\033[0m (JPetit is sad :c)")
             board = board.play(move)
             board = board.next(cup.roll())
             board = board.flip()

@@ -43,7 +43,7 @@ def test_user_related() -> None:
     
     # --- Delete user ---
     arena.delete_user(user2)
-    assert arena.get_reg_players() == [user1]
+    assert arena.get_reg_users() == [user1]
     with pytest.raises(LookupError): # Eliminar un usuari que no existeix
         arena.delete_user(user2)
     with pytest.raises(LookupError):
@@ -51,21 +51,21 @@ def test_user_related() -> None:
 
     # --- Login ---
     assert user1.connected == False
-    assert arena.get_log_players() == []
+    assert arena.get_log_users() == []
 
     # Fem login del usuari 1 i comprobem que tot s'hagi actualitzat correctament
     arena.login(user1)
     assert user1.connected == True
-    assert arena.get_log_players() == [user1]
+    assert arena.get_log_users() == [user1]
     with pytest.raises(LookupError): # Fer log a un usuari que no existeix
         arena.login(user2)
     with pytest.raises(UserLogError): # Fer log a un usuari que ja està connectat
         arena.login(user1)
     
     # --- Logout ---
-    assert arena.get_log_players() == [user1]
+    assert arena.get_log_users() == [user1]
     arena.logout(user1)
-    assert arena.get_log_players() == []
+    assert arena.get_log_users() == []
     with pytest.raises(LookupError): # Desconnectar un jugador que no està registrat
         arena.logout(user2)
     with pytest.raises(UserLogError): # Desconnectar un jugador que ja ho està

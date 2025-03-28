@@ -212,7 +212,7 @@ class Board:
     def _generate_moves(self, current_board: Board, list_dice: list[int], list_moves: list[Move] = [], current_move: Move = Move(jumps=[])) -> list[Move]:
         """
         Donat un tauler i una llista de daus, utilitza generació exhaustiva per retornar una llista amb 
-        tots els possibles moviments que es poden fer.
+        tots els possibles moviments que es poden fer amb aquella llista de daus.
         Nota: Cal diferenciar entre salts (moure una fitxa x posicions) de moviments (moure x fitxes y posicions)
         """
         # Cas base: No tenim daus disponibles, per tant, no podem fer salts xd
@@ -226,10 +226,10 @@ class Board:
             for die in list_dice:
                 valid_jumps = self._generate_jumps(current_board, die)
 
-                # Si tenim salts válids, per cadascun generem recursivament els moviments següents
+                # Si tenim salts válids, per cadascun generem recursivament els següents moviments
                 if valid_jumps:
                     for jump in valid_jumps:
-                        # Modificar el tauler i el moviment per simular el salt.
+                        # Creem un nou tauler simulant aquell moviment i treient el dau que acabem d'utilitzar.
                         new_board = current_board.copy().play(Move(jumps=[jump]))
                         new_current_move = Move(jumps=current_move.jumps + [jump])
 
@@ -257,7 +257,7 @@ class Board:
         """
         list_jumps: list[Jump] = []
 
-        # Per fitxes a la barra
+        # Si tenim fitxes a la barra, primer les hem de treure
         if board.bar(WHITE) > 0:    
             next_position = die - 1
             next_position_points = board.cell(next_position)
