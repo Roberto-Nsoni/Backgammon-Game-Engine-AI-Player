@@ -77,7 +77,8 @@ class Arena:
                 reg_users: dict[str, User] | None = None,
                 con_users: dict[str, User] | None = None) -> None:
         
-        """Constructor del programa, es considerarà com a bot el primer usuari"""
+        """Constructor del programa."""
+        # La configuració "default" crea a aquest usuari com el bot
         bot = User("Jordi Petit", "JPetit", connected=True)
         self._reg_users = reg_users if reg_users is not None else {bot.id: bot}
         self._con_users = con_users if con_users is not None else {bot.id: bot}
@@ -100,7 +101,7 @@ class Arena:
         self._reg_users.pop(user.id)
 
     def login(self, user: User) -> None:
-        "Fa entrar a un usuari (el connecta, fa login) a l'aplicació."
+        """Fa entrar a un usuari (el connecta, fa login) a l'aplicació."""
         if user.id not in self._reg_users:
             raise LookupError("Aquest usuari no es troba registrat")
         if user.connected:
@@ -110,7 +111,7 @@ class Arena:
         user.connected = True
 
     def logout(self, user: User) -> None:
-        "Fa sortir a un usuari (el desconnecta, fa logout) de l'aplicació."
+        """Fa sortir a un usuari (el desconnecta, fa logout) de l'aplicació."""
         if user.id not in self._reg_users:
             raise LookupError("Aquest usuari no es troba registrat")
         if not user.connected:
@@ -141,8 +142,10 @@ class Arena:
         return self._reg_users[user_id]
 
     def get_user_by_name(self, name: str) -> list[User]:
-        """Busca un usuari pel seu nom de pila. Cal considerar que poden
-        haver varies persones amb el mateix nom."""
+        """
+        Busca un usuari pel seu nom de pila. Cal considerar que poden
+        haver varies persones amb el mateix nom.
+        """
         users: list[User] = []
         for user in self.get_reg_users():
             if user.name == name:
@@ -152,19 +155,21 @@ class Arena:
         return users
     
     def start_new_game(self, user1: User, user2: User) -> Game:
-        """Crea una nova partida entre dos usuaris, retorna el ID de la partida.
+        """
+        Crea una nova partida entre dos usuaris, retorna el ID de la partida.
         Si l'usuari2 és JPetit es considerarà que juga un humà contra un bot
         Prec: Els dos jugadors han d'estar connectats i cap dels dos ha de tenir una
-        partida en curs."""
+        partida en curs.
+        """
         # Assrgurar-se que es compleixen les precondicions
         if user1.id == user2.id:
             raise GameError("No pot jugar un usuari contra un mateix!")
         if not (user1.connected and user2.connected):
             raise GameError("Els dos usuaris han d'estar connectats per poder jugar una nova partida!")
         if user1.in_game():
-            raise GameError(f'{user1.id} is already playing a game!')
+            raise GameError(f'{user1.id} ja té en una partida en curs!')
         if user2.id != "JPetit" and user2.in_game():
-            raise GameError(f'{user2.id} is already playing a game!')
+            raise GameError(f'{user2.id} ja té en una partida en curs')
         
         game = Game(user1, user2)
         
@@ -181,21 +186,21 @@ class Arena:
         show(game.board)
         # Es juga fins que hi hagi un guanyador
         while not game.board.over():
-            print("White move?")
+            print("Torn del blanc!")
             move = human_vs_human.read_move(game.board)
             game.apply_move(move)
             show(game.board)
             if not game.board.over():          
                 game.board = game.board.flip()
                 if game.user2.id == "JPetit":
-                    print(f"JPetit: I've got {game.board.dice().die1, game.board.dice().die2} let me think...")
+                    print(f"JPetit: \033[3mTinc els daus: {game.board.dice().die1, game.board.dice().die2} deixa'm pensar...\033[0m")
                     move = bot.bot(game.board)
                     if move.jumps:
-                        print(f"JPetit: I'm moving {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}")
+                        print(f"JPetit: \033[3mCrec que mouré {[(23 - jump.point + 1, jump.pips) for jump in move.jumps]}\033[0m")
                     else:
-                        print("JPetit: I skip my turn, I can't move (JPetit is sad :c)")
+                        print("JPetit: \033[3mPasso el meu torn, no puc moure fitxes\033[0m (JPetit is sad :c)")
                 else:
-                    print("Black move?")
+                    print("Torn del negre!")
                     move = human_vs_human.read_move(game.board)
                 game.apply_move(move)
                 game.board = game.board.flip()
@@ -356,8 +361,8 @@ def main(arena: Arena) -> None: # pragma: no cover (no fa falta comprobar amb te
             # Veure una llista dels usuaris registrats
             elif option == "3":
                 print("\nUsuaris registrats:")
-                for user in arena.get_reg_users():
-                    print(f"User ID: {user.id}, Nom: {user.name}, Winrate: {user.winrate()}%, Connectat: {user.connected}")
+                for i, user in enumerate(arena.get_reg_users()):
+                    print(f"{i}. {user.id} ({user.name}) - Connectat: {user.connected}")
             
             # Veure una llista de totes les partides en curs a l'Arena
             elif option == "4":
@@ -367,7 +372,7 @@ def main(arena: Arena) -> None: # pragma: no cover (no fa falta comprobar amb te
                     for game in current_games:
                         white = game.user1.id
                         black = game.user2.id
-                        print(f"\nID: {game.id} - WHITE: {white} V.S. BLACK: {black}")
+                        print(f"\nID Partida: {game.id} - WHITE: {white} VS. BLACK: {black}")
                 else:
                     print("\nNo hi ha partides en curs.")
 
@@ -376,7 +381,7 @@ def main(arena: Arena) -> None: # pragma: no cover (no fa falta comprobar amb te
                 user_id2 = input("\nID Usuari: ")
                 try:
                     user = arena.get_user_by_id(user_id2)
-                    print(user)
+                    print(f"\nDetalls de {user_id2}:\n{user}")
                 except LookupError as e:
                     print(e)
             

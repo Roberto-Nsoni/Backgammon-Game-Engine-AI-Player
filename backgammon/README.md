@@ -1,5 +1,7 @@
 # 🎲 Primera Pràctica d'AP2: Backgammon
-En aquest projecte es desenvolupa un nucli d'un servidor de Backgammon.
+Benvinguts a la primera pràctica de l'assignatura d'AP2!
+
+En aquest projecte es desenvolupa un nucli d'un servidor del joc de taula per a dues persones  anomenat "Backgammon".
     
 S'implementa la lògica del joc, permet a dues persones jugar entre si, es programa un bot que pot jugar contra altres humans o bots... També s'implementa una `Arena` que compleix el rol de gestor de partides, el qual permet emmagatzemar dades d'usuaris, deixar que juguin entre ells...
 
