@@ -1,4 +1,4 @@
-# Backgammon Game Engine & AI Player 🎲
+# Backgammon Game Engine & AI Player
 
 A robust Python-based implementation of the Backgammon game logic, featuring a CLI interface, a specialized Server-side management system, and an AI bot driven by custom heuristics.
 
