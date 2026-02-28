@@ -51,7 +51,7 @@ Acts as the backend manager for users and matches. It includes:
 3. **Interactive CLI Menu:** A fully-featured menu to register, login, play, and view leaderboards directly from the terminal.
 4. **Unit Testing:** Comprehensive test suites using `pytest` to ensure logic integrity and prevent regressions in game rules.
 
-## 🎮 How to Play
+## How to Play
 Ensure you have **Python 3.8+** installed. The project relies on the standard library (`typing`, `sys`, `random`, `uuid`, `pickle`) and `pytest` for testing.
 
 ### Mode: Human vs. Human
@@ -71,7 +71,7 @@ To challenge the AI (Human plays White, Bot plays Black):
 python3 human_vs_bot.py
 ```
 
-## ✅ Running Tests
+## Running Tests
 The project includes a suite of unit tests covering core game logic, edge cases, and Arena management to ensure stability. Interface-related components are excluded from automated testing. To run the suite:
 
 ```bash
