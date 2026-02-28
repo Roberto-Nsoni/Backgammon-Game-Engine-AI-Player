@@ -1,6 +1,6 @@
 # Backgammon Game Engine & AI Player
 
-A robust Python-based implementation of the Backgammon game logic, featuring a CLI interface, a specialized Server-side management system, and an AI bot driven by custom heuristics.
+A Python-based implementation of the Backgammon game logic, featuring a CLI interface, a specialized Server-side management system, and an AI bot driven by custom heuristics.
 
 ## Overview
 This project focuses on clean software architecture, separating the core game physics (rules, moves, board states) from the high-level management (users, match history, and rankings). It also includes an automated player (Bot) capable of evaluating and making optimal decisions.
